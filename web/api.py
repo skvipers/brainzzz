@@ -521,11 +521,17 @@ async def evaluate_population():
         if parallel_engine:
             # Параллельная оценка
             results = parallel_engine.evaluate_population_parallel(population, task_manager)
+            # Применяем результаты к исходным мозгам
+            for brain, fitness, metadata in results:
+                brain.fitness = fitness
+                if 'gp' in metadata:
+                    brain.gp = metadata['gp']
             message = f"Параллельная оценка завершена: {len(results)} мозгов"
         else:
             # Последовательная оценка
             for brain in population:
-                brain.evaluate_fitness(task_manager)
+                task_results = task_manager.evaluate_brain(brain)
+                brain.evaluate_fitness(task_results)
             message = f"Последовательная оценка завершена: {len(population)} мозгов"
         
         # Отправляем обновление через WebSocket
