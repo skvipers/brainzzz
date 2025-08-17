@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 Визуализатор Мозгов - Brainzzz</title>
+    <script src="https://unpkg.com/cytoscape@3.28.1/dist/cytoscape.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .controls {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .control-group label {
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9em;
+        }
+        
+        .control-group select,
+        .control-group input {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .visualization {
+            display: flex;
+            height: 600px;
+        }
+        
+        .graph-container {
+            flex: 2;
+            border: 1px solid #e9ecef;
+            position: relative;
+        }
+        
+        .sidebar {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 20px;
+            border-left: 1px solid #e9ecef;
+            overflow-y: auto;
+        }
+        
+        .brain-info {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .brain-info h3 {
+            margin: 0 0 10px 0;
+            color: #495057;
+            font-size: 1.1em;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+        
+        .info-label {
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .info-value {
+            color: #495057;
+            font-weight: 600;
+        }
+        
+        .stats {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stats h3 {
+            margin: 0 0 10px 0;
+            color: #495057;
+            font-size: 1.1em;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        
+        .stat-value {
+            color: #495057;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #6c757d;
+            font-size: 1.2em;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Визуализатор Мозгов</h1>
+            <p>Интерактивная визуализация когнитивных структур</p>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="brain-selector">Выбрать мозг:</label>
+                <select id="brain-selector">
+                    <option value="">Загрузка...</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="layout-selector">Раскладка:</label>
+                <select id="layout-selector">
+                    <option value="cola">Cola (физическая)</option>
+                    <option value="cose">Cose (биологическая)</option>
+                    <option value="grid">Сетка</option>
+                    <option value="circle">Круг</option>
+                    <option value="breadthfirst">Ширина</option>
+                    <option value="depthfirst">Глубина</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="node-size">Размер узлов:</label>
+                <input type="range" id="node-size" min="10" max="50" value="20">
+            </div>
+            
+            <button class="btn" onclick="refreshBrain()">🔄 Обновить</button>
+            <button class="btn" onclick="exportGraph()">💾 Экспорт</button>
+        </div>
+        
+        <div class="visualization">
+            <div class="graph-container" id="cy">
+                <div class="loading">Загрузка визуализации...</div>
+            </div>
+            
+            <div class="sidebar">
+                <div class="brain-info">
+                    <h3>📊 Информация о мозге</h3>
+                    <div class="info-row">
+                        <span class="info-label">ID:</span>
+                        <span class="info-value" id="brain-id">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Узлы:</span>
+                        <span class="info-value" id="brain-nodes">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Связи:</span>
+                        <span class="info-value" id="brain-connections">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">GP:</span>
+                        <span class="info-value" id="brain-gp">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Приспособленность:</span>
+                        <span class="info-value" id="brain-fitness">-</span>
+                    </div>
+                </div>
+                
+                <div class="stats">
+                    <h3>📈 Статистика</h3>
+                    <div class="stat-item">
+                        <span class="stat-label">Средняя степень:</span>
+                        <span class="stat-value" id="avg-degree">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Диаметр:</span>
+                        <span class="stat-value" id="diameter">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Плотность:</span>
+                        <span class="stat-value" id="density">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Кластеризация:</span>
+                        <span class="stat-value" id="clustering">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cy = null;
+        let currentBrain = null;
+        
+        // Инициализация Cytoscape
+        function initCytoscape() {
+            cy = cytoscape({
+                container: document.getElementById('cy'),
+                elements: [],
+                style: [
+                    {
+                        selector: 'node',
+                        style: {
+                            'background-color': '#667eea',
+                            'label': 'data(label)',
+                            'color': 'white',
+                            'text-valign': 'center',
+                            'text-halign': 'center',
+                            'font-size': '12px',
+                            'font-weight': 'bold',
+                            'width': 'data(size)',
+                            'height': 'data(size)',
+                            'border-color': '#495057',
+                            'border-width': '2px'
+                        }
+                    },
+                    {
+                        selector: 'node[type="input"]',
+                        style: {
+                            'background-color': '#28a745',
+                            'shape': 'rectangle'
+                        }
+                    },
+                    {
+                        selector: 'node[type="output"]',
+                        style: {
+                            'background-color': '#dc3545',
+                            'shape': 'rectangle'
+                        }
+                    },
+                    {
+                        selector: 'node[type="hidden"]',
+                        style: {
+                            'background-color': '#667eea',
+                            'shape': 'ellipse'
+                        }
+                    },
+                    {
+                        selector: 'node[type="memory"]',
+                        style: {
+                            'background-color': '#ffc107',
+                            'shape': 'diamond'
+                        }
+                    },
+                    {
+                        selector: 'edge',
+                        style: {
+                            'width': 'data(weight)',
+                            'line-color': 'data(color)',
+                            'target-arrow-color': 'data(color)',
+                            'target-arrow-shape': 'triangle',
+                            'curve-style': 'bezier',
+                            'label': 'data(label)',
+                            'font-size': '10px',
+                            'color': '#495057'
+                        }
+                    },
+                    {
+                        selector: 'edge[weight > 0.5]',
+                        style: {
+                            'line-color': '#28a745',
+                            'target-arrow-color': '#28a745'
+                        }
+                    },
+                    {
+                        selector: 'edge[weight < -0.5]',
+                        style: {
+                            'line-color': '#dc3545',
+                            'target-arrow-color': '#dc3545'
+                        }
+                    }
+                ],
+                layout: {
+                    name: 'cola',
+                    animate: true,
+                    animationDuration: 1000,
+                    fit: true,
+                    padding: 50
+                }
+            });
+            
+            // Обработчики событий
+            cy.on('tap', 'node', function(evt) {
+                const node = evt.target;
+                showNodeInfo(node);
+            });
+            
+            cy.on('tap', 'edge', function(evt) {
+                const edge = evt.target;
+                showEdgeInfo(edge);
+            });
+            
+            cy.on('cxttap', function(evt) {
+                if (evt.target === cy) {
+                    cy.elements().removeClass('highlighted');
+                }
+            });
+            
+            // Убираем сообщение о загрузке
+            document.querySelector('.loading').style.display = 'none';
+        }
+        
+        // Загрузка списка мозгов
+        async function loadBrains() {
+            try {
+                const response = await fetch('/api/population');
+                const brains = await response.json();
+                
+                const selector = document.getElementById('brain-selector');
+                selector.innerHTML = '<option value="">Выберите мозг...</option>';
+                
+                brains.forEach(brain => {
+                    const option = document.createElement('option');
+                    option.value = brain.id;
+                    option.textContent = `Мозг ${brain.id} (${brain.nodes} узлов, фитнес: ${brain.fitness.toFixed(3)})`;
+                    selector.appendChild(option);
+                });
+                
+                if (brains.length > 0) {
+                    selector.value = brains[0].id;
+                    loadBrainData(brains[0].id);
+                }
+                
+            } catch (error) {
+                showError('Ошибка загрузки списка мозгов: ' + error.message);
+            }
+        }
+        
+        // Загрузка данных мозга
+        async function loadBrainData(brainId) {
+            try {
+                const response = await fetch(`/api/population/${brainId}`);
+                const brain = await response.json();
+                
+                currentBrain = brain;
+                updateBrainInfo(brain);
+                visualizeBrain(brain);
+                
+            } catch (error) {
+                showError('Ошибка загрузки данных мозга: ' + error.message);
+            }
+        }
+        
+        // Визуализация мозга
+        function visualizeBrain(brain) {
+            if (!cy) return;
+            
+            // Очищаем граф
+            cy.elements().remove();
+            
+            // Создаем узлы
+            const nodes = [];
+            const edges = [];
+            
+            // Добавляем узлы
+            brain.nodes.forEach((node, index) => {
+                nodes.push({
+                    data: {
+                        id: `n${index}`,
+                        label: `${node.type}\n${node.activation}`,
+                        size: parseInt(document.getElementById('node-size').value),
+                        type: node.type
+                    }
+                });
+            });
+            
+            // Добавляем связи
+            brain.connections.forEach((conn, index) => {
+                edges.push({
+                    data: {
+                        id: `e${index}`,
+                        source: `n${conn.from}`,
+                        target: `n${conn.to}`,
+                        weight: Math.abs(conn.weight),
+                        color: conn.weight > 0 ? '#28a745' : '#dc3545',
+                        label: conn.weight.toFixed(2)
+                    }
+                });
+            });
+            
+            // Добавляем элементы в граф
+            cy.add([...nodes, ...edges]);
+            
+            // Применяем раскладку
+            applyLayout();
+            
+            // Обновляем статистику
+            updateGraphStats();
+        }
+        
+        // Применение раскладки
+        function applyLayout() {
+            const layoutName = document.getElementById('layout-selector').value;
+            
+            const layout = cy.layout({
+                name: layoutName,
+                animate: true,
+                animationDuration: 1000,
+                fit: true,
+                padding: 50
+            });
+            
+            layout.run();
+        }
+        
+        // Обновление информации о мозге
+        function updateBrainInfo(brain) {
+            document.getElementById('brain-id').textContent = brain.id;
+            document.getElementById('brain-nodes').textContent = brain.nodes.length;
+            document.getElementById('brain-connections').textContent = brain.connections.length;
+            document.getElementById('brain-gp').textContent = brain.gp.toFixed(2);
+            document.getElementById('brain-fitness').textContent = brain.fitness.toFixed(3);
+        }
+        
+        // Обновление статистики графа
+        function updateGraphStats() {
+            if (!cy || cy.elements().length === 0) return;
+            
+            const nodes = cy.nodes();
+            const edges = cy.edges();
+            
+            // Средняя степень
+            const avgDegree = edges.length / nodes.length;
+            document.getElementById('avg-degree').textContent = avgDegree.toFixed(2);
+            
+            // Диаметр (приблизительно)
+            const diameter = cy.elements().dijkstra().max;
+            document.getElementById('diameter').textContent = diameter ? diameter.distance.toFixed(2) : 'N/A';
+            
+            // Плотность
+            const maxEdges = nodes.length * (nodes.length - 1);
+            const density = maxEdges > 0 ? edges.length / maxEdges : 0;
+            document.getElementById('density').textContent = density.toFixed(3);
+            
+            // Кластеризация (приблизительно)
+            const clustering = cy.elements().clusteringCoefficient();
+            document.getElementById('clustering').textContent = clustering.toFixed(3);
+        }
+        
+        // Показать информацию об узле
+        function showNodeInfo(node) {
+            cy.elements().removeClass('highlighted');
+            node.addClass('highlighted');
+            
+            // Подсвечиваем связанные элементы
+            node.connectedEdges().addClass('highlighted');
+            node.connectedNodes().addClass('highlighted');
+        }
+        
+        // Показать информацию о связи
+        function showEdgeInfo(edge) {
+            cy.elements().removeClass('highlighted');
+            edge.addClass('highlighted');
+            edge.source().addClass('highlighted');
+            edge.target().addClass('highlighted');
+        }
+        
+        // Обновить мозг
+        function refreshBrain() {
+            const brainId = document.getElementById('brain-selector').value;
+            if (brainId) {
+                loadBrainData(brainId);
+            }
+        }
+        
+        // Экспорт графа
+        function exportGraph() {
+            if (!cy) return;
+            
+            const png = cy.png({
+                scale: 2,
+                quality: 1,
+                output: 'blob'
+            });
+            
+            const url = URL.createObjectURL(png);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `brain_${currentBrain?.id || 'unknown'}.png`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // Показать ошибку
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            
+            const container = document.querySelector('.container');
+            container.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+        
+        // Показать успех
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success';
+            successDiv.textContent = message;
+            
+            const container = document.querySelector('.container');
+            container.appendChild(successDiv);
+            
+            setTimeout(() => {
+                successDiv.remove();
+            }, 3000);
+        }
+        
+        // Обработчики событий
+        document.getElementById('brain-selector').addEventListener('change', function() {
+            if (this.value) {
+                loadBrainData(this.value);
+            }
+        });
+        
+        document.getElementById('layout-selector').addEventListener('change', function() {
+            applyLayout();
+        });
+        
+        document.getElementById('node-size').addEventListener('input', function() {
+            if (currentBrain) {
+                visualizeBrain(currentBrain);
+            }
+        });
+        
+        // Инициализация при загрузке
+        window.addEventListener('load', function() {
+            initCytoscape();
+            loadBrains();
+        });
+    </script>
+</body>
+</html> 
