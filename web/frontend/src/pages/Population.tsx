@@ -4,14 +4,23 @@ import { Users, Brain, TrendingUp, Eye, Search, Network } from 'lucide-react'
 import { useBrainStore } from '../stores/brainStore'
 
 const Population = () => {
-  const { population, stats, loading, fetchPopulation } = useBrainStore()
+  const { population, stats, loading, fetchPopulation, fetchStats } = useBrainStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState('fitness')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
   useEffect(() => {
     fetchPopulation()
-  }, [fetchPopulation])
+    fetchStats() // Добавляем загрузку статистики
+    
+    // Обновляем данные каждые 5 секунд для отображения актуальной информации
+    const interval = setInterval(() => {
+      fetchPopulation()
+      fetchStats()
+    }, 5000)
+    
+    return () => clearInterval(interval)
+  }, [fetchPopulation, fetchStats])
 
   // Фильтрация и сортировка
   const filteredPopulation = population
@@ -76,9 +85,27 @@ const Population = () => {
 
   return (
     <div className="px-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Популяция мозгов</h1>
-        <p className="text-gray-600">Управление и мониторинг когнитивных структур</p>
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Популяция мозгов</h1>
+          <p className="text-gray-600">Управление и мониторинг когнитивных структур</p>
+        </div>
+        <button
+          onClick={async () => {
+            await fetchPopulation()
+            await fetchStats()
+          }}
+          className="btn-secondary flex items-center space-x-2 px-4 py-2"
+          title="Обновить данные"
+          disabled={loading}
+        >
+          {loading ? (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+          ) : (
+            <Users className="h-4 w-4" />
+          )}
+          <span>{loading ? 'Обновление...' : 'Обновить'}</span>
+        </button>
       </div>
 
       {/* Статистика */}

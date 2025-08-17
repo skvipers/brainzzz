@@ -10,8 +10,18 @@ from typing import List, Dict, Any
 from brains import Brain, Genome, GrowthRules
 from tasks import TaskManager, XORTask, SequenceTask
 from evo import EvolutionEngine
-from viz import BrainVisualizer
-from dist import ParallelEngine
+try:
+    from viz import BrainVisualizer
+    VIZ_AVAILABLE = True
+except ImportError:
+    VIZ_AVAILABLE = False
+    print("⚠️ Визуализация недоступна (matplotlib/networkx не установлены)")
+try:
+    from dist import ParallelEngine
+    DIST_AVAILABLE = True
+except ImportError:
+    DIST_AVAILABLE = False
+    print("⚠️ Распределенные вычисления недоступны (ray не установлен)")
 
 
 def setup_logging():
@@ -136,8 +146,10 @@ def main():
             elite_size=2
         )
         
-        # Визуализатор
-        visualizer = BrainVisualizer()
+        # Визуализатор (если доступен)
+        visualizer = None
+        if VIZ_AVAILABLE:
+            visualizer = BrainVisualizer()
         
         # Создаём начальную популяцию
         logger.info("Создание начальной популяции...")
@@ -166,9 +178,12 @@ def main():
         thought_path = best_brain.get_thought_path()
         logger.info(f"   Путь мысли: {thought_path[:10]}...")  # Первые 10 шагов
         
-        # Визуализируем лучший мозг
-        logger.info("Создание визуализации...")
-        visualizer.visualize_brain(best_brain, save_path="best_brain.png")
+        # Визуализируем лучший мозг (если доступно)
+        if visualizer:
+            logger.info("Создание визуализации...")
+            visualizer.visualize_brain(best_brain, save_path="best_brain.png")
+        else:
+            logger.info("Визуализация недоступна")
         
         print(f"\n✅ Эволюция завершена! Лучший мозг имеет приспособленность {best_brain.fitness:.3f}")
         

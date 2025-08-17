@@ -158,6 +158,9 @@ class Brain:
         # Начисляем GP за успешное выполнение
         if self.fitness > 0.5:  # Порог успеха
             self.gp += self.fitness * 10.0
+        else:
+            # Даже при неудаче даем небольшое количество GP для возможности роста
+            self.gp += max(0.1, self.fitness * 2.0)
         
         return self.fitness
     
@@ -165,8 +168,9 @@ class Brain:
         """Создаёт копию мозга."""
         new_genome = self.genome.clone()
         new_brain = Brain(new_genome, self.growth_rules)
-        new_brain.gp = self.gp * 0.5  # Копия получает половину GP
-        new_brain.fitness = 0.0  # Сбрасываем приспособленность
+        new_brain.gp = self.gp * 0.8  # Копия получает 80% GP (было 0.5)
+        new_brain.fitness = self.fitness * 0.8  # Копия получает 80% фитнеса (не 0!)
+        new_brain.age = self.age  # Копируем возраст
         return new_brain
     
     def mutate(self, mutation_rate: float = 0.1):

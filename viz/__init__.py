@@ -10,6 +10,5 @@
 from .brain_visualizer import BrainVisualizer
 from .evolution_visualizer import EvolutionVisualizer
 from .web_server import WebServer
-from ..web.api import app as web_app
 
 __all__ = ['BrainVisualizer', 'EvolutionVisualizer', 'WebServer'] 

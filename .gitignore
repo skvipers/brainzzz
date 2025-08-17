@@ -56,6 +56,20 @@ data/
 *.sqlite
 *.sqlite3
 
+# Brain visualization images
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.pdf
+best_brain.png
+brain_*.png
+evolution_*.png
+brain_incubator.log
+brain_evolution_*.log
+*.log
+
 # Node.js
 node_modules/
 npm-debug.log*
@@ -76,4 +90,18 @@ ehthumbs.db
 Thumbs.db
 
 # Cursor
-.cursor/ 
+.cursor/
+
+# Temporary files and cache
+*.tmp
+*.temp
+*.cache
+.cache/
+temp/
+tmp/
+
+# Brain simulation snapshots and exports
+snapshots/
+exports/
+brain_snapshots/
+population_snapshots/ 

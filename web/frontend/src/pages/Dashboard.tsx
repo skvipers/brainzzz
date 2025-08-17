@@ -8,6 +8,14 @@ const Dashboard = () => {
   useEffect(() => {
     fetchPopulation()
     fetchStats()
+    
+    // Обновляем данные каждые 10 секунд для отображения актуальной информации
+    const interval = setInterval(() => {
+      fetchPopulation()
+      fetchStats()
+    }, 10000)
+    
+    return () => clearInterval(interval)
   }, [fetchPopulation, fetchStats])
   
   const handleStartEvolution = async () => {
@@ -77,6 +85,7 @@ const Dashboard = () => {
       change: '-2%',
       changeType: 'negative' as const,
     },
+
   ]
   
   const recentActivity = [
@@ -88,9 +97,27 @@ const Dashboard = () => {
   
   return (
     <div className="px-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Дашборд</h1>
-        <p className="text-gray-600">Обзор состояния инкубатора мозгов</p>
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Дашборд</h1>
+          <p className="text-gray-600">Обзор состояния инкубатора мозгов</p>
+        </div>
+        <button
+          onClick={async () => {
+            await fetchPopulation()
+            await fetchStats()
+          }}
+          className="btn-secondary flex items-center space-x-2 px-4 py-2"
+          title="Обновить данные"
+          disabled={loading}
+        >
+          {loading ? (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+          ) : (
+            <TrendingUp className="h-4 w-4" />
+          )}
+          <span>{loading ? 'Обновление...' : 'Обновить'}</span>
+        </button>
       </div>
       
       {/* Metrics Grid */}
@@ -137,6 +164,7 @@ const Dashboard = () => {
                 <span className="text-sm text-gray-600">Средние связи</span>
                 <span className="font-medium">{(stats.avg_connections || 0).toFixed(1)}</span>
               </div>
+
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Активные задачи</span>
                 <span className="font-medium">2</span>

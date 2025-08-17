@@ -2,11 +2,10 @@
 Веб-интерфейс для инкубатора мозгов.
 
 Модули:
-- api: FastAPI веб-сервер с WebSocket поддержкой
-- models: Pydantic модели данных
-- websocket: WebSocket менеджер для real-time обновлений
+- frontend: React приложение
+- settings: настройки веб-интерфейса
+- redis_manager: управление Redis соединением
+- event_bus: шина событий
 """
 
-from .api import app, manager
-
-__all__ = ['app', 'manager'] 
+__all__ = [] 

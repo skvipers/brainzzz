@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { TrendingUp, Play, BarChart3, Zap } from 'lucide-react'
 import { useBrainStore } from '../stores/brainStore'
 
@@ -16,10 +16,11 @@ interface EvolutionHistoryEntry {
 }
 
 const Evolution = () => {
-  const { stats, evaluatePopulation } = useBrainStore()
+  const { stats, evaluatePopulation, fetchStats, loading } = useBrainStore()
   const [mutationRate, setMutationRate] = useState(0.3)
   const [populationSize, setPopulationSize] = useState(20)
   const [isEvolving, setIsEvolving] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [evolutionHistory, setEvolutionHistory] = useState<EvolutionHistoryEntry[]>([
     {
       id: 1,
@@ -34,6 +35,18 @@ const Evolution = () => {
       avgFitness: 0.0
     }
   ])
+
+  // Загружаем статистику при загрузке компонента и обновляем периодически
+  useEffect(() => {
+    fetchStats()
+    
+    // Обновляем данные каждые 3 секунды для отображения актуальной информации
+    const interval = setInterval(() => {
+      fetchStats()
+    }, 3000)
+    
+    return () => clearInterval(interval)
+  }, [fetchStats])
 
   const handleStartEvolution = async () => {
     try {
@@ -85,6 +98,14 @@ const Evolution = () => {
       
       // Обновляем статистику
       await evaluatePopulation()
+      
+      // Обновляем статистику для отображения
+      await fetchStats()
+      
+      // Добавляем небольшую задержку и повторно обновляем для гарантии
+      setTimeout(async () => {
+        await fetchStats()
+      }, 500)
       
     } catch (error) {
       console.error('Ошибка:', error)
@@ -143,6 +164,14 @@ const Evolution = () => {
       // Обновляем статистику
       await evaluatePopulation()
       
+      // Обновляем статистику для отображения
+      await fetchStats()
+      
+      // Добавляем небольшую задержку и повторно обновляем для гарантии
+      setTimeout(async () => {
+        await fetchStats()
+      }, 500)
+      
     } catch (error) {
       console.error('Ошибка:', error)
       
@@ -165,10 +194,29 @@ const Evolution = () => {
 
   return (
     <div className="px-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Эволюция</h1>
-        <p className="text-gray-600">Управление эволюционным процессом популяции</p>
-      </div>
+                <div className="mb-8 flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Эволюция</h1>
+              <p className="text-gray-600">Управление эволюционным процессом популяции</p>
+            </div>
+            <button
+              onClick={async () => {
+                setIsRefreshing(true)
+                await fetchStats()
+                setIsRefreshing(false)
+              }}
+              className="btn-secondary flex items-center space-x-2 px-4 py-2"
+              title="Обновить данные"
+              disabled={isRefreshing}
+            >
+              {isRefreshing ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              ) : (
+                <TrendingUp className="h-4 w-4" />
+              )}
+              <span>{isRefreshing ? 'Обновление...' : 'Обновить'}</span>
+            </button>
+          </div>
 
       {/* Параметры эволюции - исправленная вёрстка */}
       <div className="card mb-8">
@@ -250,6 +298,9 @@ const Evolution = () => {
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
             <Zap className="h-5 w-5 text-yellow-600" />
             <span>Текущее состояние</span>
+            {loading && (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brain-600 ml-2"></div>
+            )}
           </h3>
 
           <div className="space-y-3">
@@ -265,6 +316,7 @@ const Evolution = () => {
               <span className="text-sm text-gray-600">Средний фитнес:</span>
               <span className="font-medium">{(stats.avg_fitness || 0).toFixed(3)}</span>
             </div>
+
             <div className="flex justify-between">
               <span className="text-sm text-gray-600">Размер популяции:</span>
               <span className="font-medium">{stats.size || 0}</span>

@@ -82,7 +82,8 @@ class EvolutionEngine:
             
             # Сброс приспособленности для нового потомка
             offspring.fitness = 0.0
-            offspring.age = 0
+            # Увеличиваем возраст потомка
+            offspring.age = parent1.age + 1
             
             new_population.append(offspring)
         

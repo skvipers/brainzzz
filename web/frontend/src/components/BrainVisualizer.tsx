@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import cytoscape from 'cytoscape'
 import { Brain, Eye, Settings, Download, RotateCcw } from 'lucide-react'
 
@@ -45,13 +45,21 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
     const fetchBrainData = async () => {
       try {
         setLoading(true)
+        console.log('🔄 Загружаю данные для мозга #', brainId)
+        
         const response = await fetch(`/api/population/${brainId}`)
+        console.log('📡 API Response status:', response.status)
+        
         if (!response.ok) {
-          throw new Error('Мозг не найден')
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
         }
+        
         const data = await response.json()
+        console.log('📊 Полученные данные:', data)
+        
         setBrainData(data)
       } catch (err) {
+        console.error('❌ Ошибка загрузки данных:', err)
         setError(err instanceof Error ? err.message : 'Ошибка загрузки')
       } finally {
         setLoading(false)
@@ -63,165 +71,181 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
 
   // Инициализация Cytoscape
   useEffect(() => {
-    if (!cyRef.current || !brainData) return
-
-    // Создаем элементы для Cytoscape
-    const elements = {
-      nodes: brainData.nodes.map(node => ({
-        data: {
-          id: node.id.toString(),
-          label: `${node.type.charAt(0).toUpperCase()}${node.id}`,
-          type: node.type,
-          activation: node.activation,
-          bias: node.bias,
-          threshold: node.threshold
-        }
-      })),
-      edges: brainData.connections
-        .filter(conn => conn.enabled)
-        .map(conn => ({
-          data: {
-            id: conn.id.toString(),
-            source: conn.from.toString(),
-            target: conn.to.toString(),
-            weight: conn.weight,
-            plasticity: conn.plasticity,
-            label: showWeights ? conn.weight.toFixed(2) : ''
-          }
-        }))
+    if (!cyRef.current || !brainData) {
+      console.log('⚠️ Не могу инициализировать Cytoscape:', { 
+        hasRef: !!cyRef.current, 
+        hasData: !!brainData 
+      })
+      return
     }
 
-    // Создаем экземпляр Cytoscape
-    const cy = cytoscape({
-      container: cyRef.current,
-      elements: elements,
-      style: [
-        // Стили для узлов
-        {
-          selector: 'node',
-          style: {
-            'background-color': '#e5e7eb',
-            'border-color': '#374151',
-            'border-width': 2,
-            'width': nodeSize,
-            'height': nodeSize,
-            'label': 'data(label)',
-            'font-size': '10px',
-            'font-weight': 'bold',
-            'text-valign': 'center',
-            'text-halign': 'center',
-            'text-wrap': 'wrap',
-            'text-max-width': nodeSize * 0.8
+    console.log('🎯 Инициализирую Cytoscape с данными:', brainData)
+
+    try {
+      // Создаем элементы для Cytoscape
+      const elements = {
+        nodes: brainData.nodes.map(node => ({
+          data: {
+            id: node.id.toString(),
+            label: `${node.type.charAt(0).toUpperCase()}${node.id}`,
+            type: node.type,
+            activation: node.activation,
+            bias: node.bias,
+            threshold: node.threshold
           }
-        },
-        // Стили для входных узлов
-        {
-          selector: 'node[type = "input"]',
-          style: {
-            'background-color': '#3b82f6',
-            'border-color': '#1e40af',
-            'color': 'white'
-          }
-        },
-        // Стили для выходных узлов
-        {
-          selector: 'node[type = "output"]',
-          style: {
-            'background-color': '#10b981',
-            'border-color': '#047857',
-            'color': 'white'
-          }
-        },
-        // Стили для скрытых узлов
-        {
-          selector: 'node[type = "hidden"]',
-          style: {
-            'background-color': '#f59e0b',
-            'border-color': '#d97706',
-            'color': 'white'
-          }
-        },
-        // Стили для узлов памяти
-        {
-          selector: 'node[type = "memory"]',
-          style: {
-            'background-color': '#8b5cf6',
-            'border-color': '#7c3aed',
-            'color': 'white'
-          }
-        },
-        // Стили для связей
-        {
-          selector: 'edge',
-          style: {
-            'width': 'data(weight)',
-            'line-color': function(ele: any) {
-              const weight = ele.data('weight')
-              if (weight > 0.5) return '#10b981' // Зеленый для сильных положительных
-              if (weight < -0.5) return '#ef4444' // Красный для сильных отрицательных
-              return '#6b7280' // Серый для слабых
-            },
-            'target-arrow-color': function(ele: any) {
-              const weight = ele.data('weight')
-              if (weight > 0.5) return '#10b981'
-              if (weight < -0.5) return '#ef4444'
-              return '#6b7280'
-            },
-            'target-arrow-shape': 'triangle',
-            'arrow-scale': 0.5,
-            'curve-style': 'bezier',
-            'label': 'data(label)',
-            'font-size': '8px',
-            'text-rotation': 'autorotate',
-            'text-margin-y': '-10px'
-          }
-        }
-      ],
-      layout: {
-        name: layout,
-        ...(layout === 'cola' && {
-          nodeSpacing: 50,
-          edgeLength: 100,
-          animate: true,
-          randomize: false,
-          maxSimulationTime: 1500
-        }),
-        ...(layout === 'circle' && {
-          radius: 200,
-          startAngle: 0,
-          sweep: 360
-        }),
-        ...(layout === 'grid' && {
-          rows: Math.ceil(Math.sqrt(brainData.nodes.length)),
-          cols: Math.ceil(Math.sqrt(brainData.nodes.length))
-        })
+        })),
+        edges: brainData.connections
+          .filter(conn => conn.enabled)
+          .map(conn => ({
+            data: {
+              id: conn.id.toString(),
+              source: conn.from.toString(),
+              target: conn.to.toString(),
+              weight: conn.weight,
+              plasticity: conn.plasticity,
+              label: showWeights ? conn.weight.toFixed(2) : ''
+            }
+          }))
       }
-    })
 
-    // Сохраняем экземпляр
-    cyInstanceRef.current = cy
+      console.log('🔗 Созданные элементы:', elements)
 
-    // Добавляем обработчики событий
-    cy.on('tap', 'node', function(evt) {
-      const node = evt.target
-      const data = node.data()
-      console.log('Узел:', data)
-      // Здесь можно показать модальное окно с деталями узла
-    })
+      // Создаем экземпляр Cytoscape
+      const cy = cytoscape({
+        container: cyRef.current,
+        elements: elements,
+        style: [
+          // Стили для узлов
+          {
+            selector: 'node',
+            style: {
+              'background-color': '#e5e7eb',
+              'border-color': '#374151',
+              'border-width': 2,
+              'width': nodeSize,
+              'height': nodeSize,
+              'label': 'data(label)',
+              'font-size': '10px',
+              'font-weight': 'bold',
+              'text-valign': 'center',
+              'text-halign': 'center',
+              'text-wrap': 'wrap',
+              'text-max-width': nodeSize * 0.8
+            }
+          },
+          // Стили для входных узлов
+          {
+            selector: 'node[type = "input"]',
+            style: {
+              'background-color': '#3b82f6',
+              'border-color': '#1e40af',
+              'color': 'white'
+            }
+          },
+          // Стили для выходных узлов
+          {
+            selector: 'node[type = "output"]',
+            style: {
+              'background-color': '#10b981',
+              'border-color': '#047857',
+              'color': 'white'
+            }
+          },
+          // Стили для скрытых узлов
+          {
+            selector: 'node[type = "hidden"]',
+            style: {
+              'background-color': '#f59e0b',
+              'border-color': '#d97706',
+              'color': 'white'
+            }
+          },
+          // Стили для узлов памяти
+          {
+            selector: 'node[type = "memory"]',
+            style: {
+              'background-color': '#8b5cf6',
+              'border-color': '#7c3aed',
+              'color': 'white'
+            }
+          },
+          // Стили для связей
+          {
+            selector: 'edge',
+            style: {
+              'width': 'data(weight)',
+              'line-color': function(ele: any) {
+                const weight = ele.data('weight')
+                if (weight > 0.5) return '#10b981' // Зеленый для сильных положительных
+                if (weight < -0.5) return '#ef4444' // Красный для сильных отрицательных
+                return '#6b7280' // Серый для слабых
+              },
+              'target-arrow-color': function(ele: any) {
+                const weight = ele.data('weight')
+                if (weight > 0.5) return '#10b981'
+                if (weight < -0.5) return '#ef4444'
+                return '#6b7280'
+              },
+              'target-arrow-shape': 'triangle',
+              'arrow-scale': 0.5,
+              'curve-style': 'bezier',
+              'label': 'data(label)',
+              'font-size': '8px',
+              'text-rotation': 'autorotate',
+              'text-margin-y': '-10px'
+            }
+          }
+        ],
+        layout: {
+          name: layout,
+          ...(layout === 'cola' && {
+            nodeSpacing: 50,
+            edgeLength: 100,
+            animate: true,
+            randomize: false,
+            maxSimulationTime: 1500
+          }),
+          ...(layout === 'circle' && {
+            radius: 200,
+            startAngle: 0,
+            sweep: 360
+          }),
+          ...(layout === 'grid' && {
+            rows: Math.ceil(Math.sqrt(brainData.nodes.length)),
+            cols: Math.ceil(Math.sqrt(brainData.nodes.length))
+          })
+        }
+      })
 
-    cy.on('tap', 'edge', function(evt) {
-      const edge = evt.target
-      const data = edge.data()
-      console.log('Связь:', data)
-      // Здесь можно показать модальное окно с деталями связи
-    })
+      console.log('✅ Cytoscape инициализирован успешно')
 
-    // Автоматически подгоняем размер
-    cy.fit()
-    cy.center()
+      // Сохраняем экземпляр
+      cyInstanceRef.current = cy
 
-    return () => {
-      cy.destroy()
+      // Добавляем обработчики событий
+      cy.on('tap', 'node', function(evt) {
+        const node = evt.target
+        const data = node.data()
+        console.log('👆 Узел:', data)
+      })
+
+      cy.on('tap', 'edge', function(evt) {
+        const edge = evt.target
+        const data = edge.data()
+        console.log('👆 Связь:', data)
+      })
+
+      // Автоматически подгоняем размер
+      cy.fit()
+      cy.center()
+
+      return () => {
+        console.log('🧹 Уничтожаю Cytoscape')
+        cy.destroy()
+      }
+    } catch (err) {
+      console.error('❌ Ошибка инициализации Cytoscape:', err)
+      setError(`Ошибка инициализации: ${err instanceof Error ? err.message : 'Неизвестная ошибка'}`)
     }
   }, [brainData, layout, showWeights, nodeSize])
 
@@ -442,9 +466,15 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
         <div className="flex-1 p-4">
           <div
             ref={cyRef}
-            className="w-full h-full border border-gray-200 rounded-lg"
+            className="w-full h-full border border-gray-200 rounded-lg bg-gray-50"
             style={{ minHeight: '500px' }}
           />
+          {/* Отладочная информация */}
+          <div className="mt-2 text-xs text-gray-500">
+            Debug: brainData={brainData ? 'loaded' : 'null'}, 
+            nodes={brainData?.nodes.length || 0}, 
+            connections={brainData?.connections.length || 0}
+          </div>
         </div>
         
         {/* Статистика */}
