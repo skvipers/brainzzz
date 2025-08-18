@@ -39,22 +39,22 @@ const Evolution = () => {
   // Загружаем статистику при загрузке компонента и обновляем периодически
   useEffect(() => {
     fetchStats()
-    
+
     // Обновляем данные каждые 3 секунды для отображения актуальной информации
     const interval = setInterval(() => {
       fetchStats()
     }, 3000)
-    
+
     return () => clearInterval(interval)
   }, [fetchStats])
 
   const handleStartEvolution = async () => {
     try {
       setIsEvolving(true)
-      
+
       // Запускаем эволюцию через store
       await startEvolution(mutationRate, populationSize)
-      
+
       // Добавляем в историю
       const newEntry: EvolutionHistoryEntry = {
         id: Date.now(),
@@ -68,23 +68,23 @@ const Evolution = () => {
         bestFitness: stats.max_fitness || 0,
         avgFitness: stats.avg_fitness || 0
       }
-      
+
       setEvolutionHistory(prev => [newEntry, ...prev.slice(0, 9)]) // Оставляем последние 10 записей
-      
+
       // Обновляем данные популяции и статистику
       await fetchPopulation()
       await evaluatePopulation()
       await fetchStats()
-      
+
       // Добавляем небольшую задержку и повторно обновляем для гарантии
       setTimeout(async () => {
         await fetchPopulation()
         await fetchStats()
       }, 1000)
-      
+
     } catch (error) {
       console.error('Ошибка:', error)
-      
+
       // Добавляем ошибку в историю
       const errorEntry: EvolutionHistoryEntry = {
         id: Date.now(),
@@ -98,7 +98,7 @@ const Evolution = () => {
         bestFitness: stats.max_fitness || 0,
         avgFitness: stats.avg_fitness || 0
       }
-      
+
       setEvolutionHistory(prev => [errorEntry, ...prev.slice(0, 9)])
     } finally {
       setIsEvolving(false)
@@ -109,7 +109,7 @@ const Evolution = () => {
     try {
       // Изменяем размер популяции через store
       await startEvolution(mutationRate, populationSize)
-      
+
       // Добавляем в историю
       const newEntry: EvolutionHistoryEntry = {
         id: Date.now(),
@@ -123,22 +123,22 @@ const Evolution = () => {
         bestFitness: stats.max_fitness || 0,
         avgFitness: stats.avg_fitness || 0
       }
-      
+
       setEvolutionHistory(prev => [newEntry, ...prev.slice(0, 9)])
-      
+
       // Обновляем данные популяции и статистику
       await fetchPopulation()
       await fetchStats()
-      
+
       // Добавляем небольшую задержку и повторно обновляем для гарантии
       setTimeout(async () => {
         await fetchPopulation()
         await fetchStats()
       }, 1000)
-      
+
     } catch (error) {
       console.error('Ошибка изменения размера популяции:', error)
-      
+
       const errorEntry: EvolutionHistoryEntry = {
         id: Date.now(),
         timestamp: new Date().toLocaleString(),
@@ -151,7 +151,7 @@ const Evolution = () => {
         bestFitness: stats.max_fitness || 0,
         avgFitness: stats.avg_fitness || 0
       }
-      
+
       setEvolutionHistory(prev => [errorEntry, ...prev.slice(0, 9)])
     }
   }
@@ -186,7 +186,7 @@ const Evolution = () => {
       {/* Параметры эволюции - исправленная вёрстка */}
       <div className="card mb-8">
         <h3 className="text-lg font-semibold text-gray-900 mb-6">Параметры эволюции</h3>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
           {/* Скорость мутации */}
           <div className="space-y-3">
@@ -208,7 +208,7 @@ const Evolution = () => {
               <span>1.0</span>
             </div>
           </div>
-          
+
           {/* Размер популяции */}
           <div className="space-y-3">
             <label className="block text-sm font-medium text-gray-700">
@@ -223,7 +223,7 @@ const Evolution = () => {
               className="input-field w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brain-500 focus:border-transparent"
             />
           </div>
-          
+
           {/* Кнопки управления */}
           <div className="space-y-3">
             <label className="block text-sm font-medium text-gray-700">
@@ -378,4 +378,4 @@ const Evolution = () => {
   )
 }
 
-export default Evolution 
+export default Evolution

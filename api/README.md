@@ -86,4 +86,4 @@ API слушает канал `brainzzz.events` для получения соб
 - `brain_update` - Обновление мозга
 - `task_update` - Результат задачи
 - `evolution_step` - Шаг эволюции
-- `control` - Команды управления 
+- `control` - Команды управления

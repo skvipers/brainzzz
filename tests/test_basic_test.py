@@ -4,11 +4,15 @@ import pytest
 def test_basic_import():
     """Test that basic modules can be imported."""
     try:
+        # Проверяем, что модули доступны для импорта
         import brains
         import evo
         import tasks
 
-        assert True
+        # Если импорт прошел успешно, модули работают
+        assert brains is not None
+        assert evo is not None
+        assert tasks is not None
     except ImportError as e:
         pytest.skip(f"Module not available: {e}")
 

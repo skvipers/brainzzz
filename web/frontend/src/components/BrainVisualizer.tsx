@@ -56,17 +56,17 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
       console.error('❌ Данные мозга не являются объектом:', data)
       return false
     }
-    
+
     if (!Array.isArray(data.nodes) || !Array.isArray(data.connections)) {
       console.error('❌ Отсутствуют nodes или connections:', data)
       return false
     }
-    
+
     if (typeof data.gp !== 'number' || typeof data.fitness !== 'number' || typeof data.age !== 'number') {
       console.error('❌ Отсутствуют обязательные поля gp, fitness или age:', data)
       return false
     }
-    
+
     // Проверяем структуру узлов
     for (const node of data.nodes) {
       if (!node.id || !node.type || !node.activation || typeof node.bias !== 'number' || typeof node.threshold !== 'number') {
@@ -74,7 +74,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
         return false
       }
     }
-    
+
     // Проверяем структуру связей
     for (const conn of data.connections) {
       if (!conn.id || !conn.from || !conn.to || typeof conn.weight !== 'number' || typeof conn.plasticity !== 'number' || typeof conn.enabled !== 'boolean') {
@@ -82,7 +82,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
         return false
       }
     }
-    
+
     console.log('✅ Данные мозга прошли валидацию')
     return true
   }
@@ -94,7 +94,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
     const enabledConnections = brainData.connections.filter(c => c.enabled)
     const weights = enabledConnections.map(c => c.weight)
     const plasticities = enabledConnections.map(c => c.plasticity)
-    
+
     const nodeTypes = brainData.nodes.reduce((acc, node) => {
       acc[node.type] = (acc[node.type] || 0) + 1
       return acc
@@ -118,23 +118,23 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
   useEffect(() => {
     // Предотвращаем дублирование вызовов
     let isMounted = true
-    
+
     const fetchBrainData = async () => {
       try {
         if (!isMounted) return
         setLoading(true)
         console.log('🔄 Загружаю данные для мозга #', brainId)
-        
+
         const response = await fetch(`/api/population/${brainId}`)
         console.log('📡 API Response status:', response.status)
-        
+
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`)
         }
-        
+
         const data = await response.json()
         console.log('📊 Полученные данные:', data)
-        
+
         // Отладочная информация о весах связей
         if (data.connections) {
           console.log('🔍 Анализ весов связей:')
@@ -148,15 +148,15 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
             else if (weight < -0.3) category = 'Сильная отрицательная (-0.7--0.3)'
             else if (weight < 0) category = 'Слабая отрицательная (-0.3-0)'
             else category = 'Нулевая (=0)'
-            
+
             console.log(`  Связь ${conn.id}: вес=${weight}, категория=${category}, enabled=${conn.enabled}`)
           })
         }
-        
+
         // Валидируем данные перед установкой
         if (validateBrainData(data) && isMounted) {
           setBrainData(data)
-          
+
           // Автоматически включаем показ неактивных связей, если все связи неактивны
           if (data.connections && data.connections.length > 0 && data.connections.every(c => !c.enabled)) {
             console.log('⚠️ Все связи неактивны, автоматически включаю показ неактивных связей')
@@ -181,7 +181,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
     if (brainId && (!brainData || brainData.id !== brainId)) {
       fetchBrainData()
     }
-    
+
     return () => {
       isMounted = false
     }
@@ -190,9 +190,9 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
   // Инициализация Cytoscape
   useEffect(() => {
     if (!cyRef.current || !brainData) {
-      console.log('⚠️ Не могу инициализировать Cytoscape:', { 
-        hasRef: !!cyRef.current, 
-        hasData: !!brainData 
+      console.log('⚠️ Не могу инициализировать Cytoscape:', {
+        hasRef: !!cyRef.current,
+        hasData: !!brainData
       })
       return
     }
@@ -237,16 +237,16 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
       console.log('  - Формат связи:', JSON.stringify(elements.edges[0], null, 2))
       console.log('  - Все узлы имеют data.id:', elements.nodes.every(n => n.data && n.data.id))
       console.log('  - Все связи имеют data.source и data.target:', elements.edges.every(e => e.data && e.data.source && e.data.target))
-      
+
       // Проверяем, что все узлы существуют для связей
       const nodeIds = new Set(elements.nodes.map(n => n.data.id))
-      const invalidEdges = elements.edges.filter(edge => 
+      const invalidEdges = elements.edges.filter(edge =>
         !nodeIds.has(edge.data.source) || !nodeIds.has(edge.data.target)
       )
       if (invalidEdges.length > 0) {
         console.warn('⚠️ Найдены связи с несуществующими узлами:', invalidEdges)
       }
-      
+
       // Дополнительная проверка данных связей
       console.log('🔍 Детали связей:')
       elements.edges.forEach((edge, index) => {
@@ -414,7 +414,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
       console.log('  Узлы:', cy.elements('node').length)
       console.log('  Связи:', cy.elements('edge').length)
       console.log('  Всего элементов:', cy.elements().length)
-      
+
       // Дополнительная проверка через небольшую задержку
       setTimeout(() => {
         console.log('🔍 Проверка элементов через 50ms:')
@@ -457,27 +457,27 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
       // Автоматически подгоняем размер
       cy.fit()
       cy.center()
-      
+
       // Проверяем, что все элементы добавлены корректно
       console.log('🔍 Проверка элементов после инициализации:')
       console.log('  Ожидалось узлов:', elements.nodes.length)
       console.log('  Фактически узлов:', cy.elements('node').length)
       console.log('  Ожидалось связей:', elements.edges.length)
       console.log('  Фактически связей:', cy.elements('edge').length)
-      
+
       // Применяем стили к связям один раз после инициализации
       console.log('🎯 Вызываю applyEdgeStyles после инициализации...')
       setTimeout(() => {
         applyEdgeStyles(cy)
       }, 200) // Увеличиваем время на отрисовку
-      
+
       // Дополнительная проверка размеров после инициализации
       setTimeout(() => {
         try {
           cy.resize()
           cy.fit()
           cy.center()
-          
+
           // Дополнительная проверка элементов
           console.log('🔍 Проверка элементов после инициализации:')
           console.log('  Узлы:', cy.elements('node').length)
@@ -518,15 +518,15 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
       // Удаляем все существующие связи
       cy.elements('edge').remove()
       console.log('🗑️ Все связи удалены')
-      
+
       // Создаем новые связи с учетом текущего состояния showDisabledConnections
       console.log('🔍 Всего связей в данных:', brainData.connections.length)
       console.log('🔍 Активных связей:', brainData.connections.filter(c => c.enabled).length)
       console.log('🔍 Неактивных связей:', brainData.connections.filter(c => !c.enabled).length)
-      
+
       const filteredConnections = brainData.connections.filter(conn => conn.enabled || showDisabledConnections)
       console.log('🔍 Связей после фильтрации:', filteredConnections.length)
-      
+
       const newEdges = filteredConnections.map(conn => ({
           data: {
             id: `edge_${conn.id}_${conn.from}_${conn.to}`, // Уникальный ID для каждой связи
@@ -544,12 +544,12 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
       const addedEdges = cy.add(newEdges)
       console.log('🔍 Добавленные связи:', addedEdges.length)
       console.log('🔍 Всего связей в Cytoscape после добавления:', cy.elements('edge').length)
-      
+
       // Применяем стили к новым связям
       setTimeout(() => {
         applyEdgeStyles(cy)
       }, 50)
-      
+
       console.log('✅ Связи обновлены:', newEdges.length)
     } catch (err) {
       console.error('❌ Ошибка обновления связей:', err)
@@ -585,7 +585,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
     } as any
 
     cy.layout(layoutOptions).run()
-    
+
     // Обновляем стили связей после изменения layout
     setTimeout(() => {
       applyEdgeStyles(cy)
@@ -604,17 +604,17 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
           if (container && container.offsetWidth > 0 && container.offsetHeight > 0) {
             // Принудительно обновляем размеры
             cy.resize()
-            
+
             // Пересчитываем позиции элементов
             cy.elements().forEach(ele => {
               ele.position('x', ele.position('x'))
               ele.position('y', ele.position('y'))
             })
-            
+
             // Подгоняем размер и центрируем
             cy.fit()
             cy.center()
-            
+
             // Применяем текущий layout заново только если есть элементы
             if (cy.elements().length > 0) {
               const layoutOptions = {
@@ -639,10 +639,10 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
                   cols: Math.ceil(Math.sqrt(brainData.nodes.length))
                 })
               } as any
-              
+
               cy.layout(layoutOptions).run()
             }
-            
+
             console.log('✅ Cytoscape успешно обновлен после изменения статистики')
           } else {
             console.warn('⚠️ Контейнер Cytoscape не готов для обновления')
@@ -697,7 +697,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
     if (!cyInstanceRef.current) return
 
     const cy = cyInstanceRef.current
-    
+
     if (format === 'png') {
       const png = cy.png({
         full: true,
@@ -714,7 +714,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
       const json = cy.json()
       const dataStr = JSON.stringify(json, null, 2)
       const dataBlob = new Blob([dataStr], { type: 'application/json' })
-      
+
       const url = URL.createObjectURL(dataBlob)
       const a = document.createElement('a')
       a.href = url
@@ -744,17 +744,17 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
       if (container && container.offsetWidth > 0 && container.offsetHeight > 0) {
         // Принудительно обновляем размеры
         cy.resize()
-        
+
         // Пересчитываем позиции элементов
         cy.elements().forEach(ele => {
           ele.position('x', ele.position('x'))
           ele.position('y', ele.position('y'))
         })
-        
+
         // Подгоняем размер и центрируем
         cy.fit()
         cy.center()
-        
+
         console.log('✅ Размеры Cytoscape принудительно обновлены')
       } else {
         console.warn('⚠️ Контейнер Cytoscape не готов для обновления')
@@ -788,7 +788,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
         // Обновляем стили связей
         const weight = ele.data('weight') as number
         const enabled = ele.data('enabled') as boolean
-        
+
         let color: string
         if (!enabled) {
           color = '#d1d5db'
@@ -807,11 +807,11 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
         } else {
           color = '#6b7280'
         }
-        
+
         ele.style('line-color', color)
         ele.style('target-arrow-color', color)
       })
-      
+
       console.log('✅ Стили Cytoscape принудительно обновлены')
     } catch (err) {
       console.error('❌ Ошибка обновления стилей:', err)
@@ -822,25 +822,25 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
   const applyEdgeStyles = (cy: cytoscape.Core) => {
     const edgeCount = cy.elements('edge').length
     console.log('🎨 Применяю стили к связям. Всего связей:', edgeCount)
-    
+
     // Дополнительная диагностика
     console.log('🔍 Все элементы в Cytoscape:', cy.elements().length)
     console.log('🔍 Узлы:', cy.elements('node').length)
     console.log('🔍 Связи:', cy.elements('edge').length)
     console.log('🔍 Типы элементов:', cy.elements().map(ele => ele.isNode() ? 'node' : 'edge'))
-    
+
     if (edgeCount === 0) {
       console.warn('⚠️ Связи не найдены для применения стилей')
-      
+
       // Попробуем принудительно обновить DOM
       cy.elements().forEach(ele => {
         ele.position('x', ele.position('x'))
         ele.position('y', ele.position('y'))
       })
-      
+
       const retryEdgeCount = cy.elements('edge').length
       console.log('🔍 Связи после принудительного обновления DOM:', retryEdgeCount)
-      
+
       if (retryEdgeCount === 0) {
         // Попробуем принудительно обновить все элементы
         cy.elements().forEach(ele => {
@@ -849,16 +849,16 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
             ele.style('target-arrow-color', ele.style('target-arrow-color'))
           }
         })
-        
+
         const finalRetryCount = cy.elements('edge').length
         console.log('🔍 Связи после принудительного обновления стилей:', finalRetryCount)
-        
+
         if (finalRetryCount === 0) {
           return
         }
       }
     }
-    
+
     // Применяем стили к каждой связи
     cy.elements('edge').forEach((edge) => {
       applyEdgeStyle(edge)
@@ -869,7 +869,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
   const applyEdgeStyle = (edge: cytoscape.EdgeSingular) => {
     const weight = edge.data('weight') as number
     const enabled = edge.data('enabled') as boolean
-    
+
     let color: string
     if (!enabled) {
       color = '#d1d5db' // Светло-серый для неактивных
@@ -888,12 +888,12 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
     } else {
       color = '#6b7280' // Серый для нулевых
     }
-    
+
     // Применяем стили напрямую
     try {
       edge.style('line-color', color)
       edge.style('target-arrow-color', color)
-      
+
       // Стиль применен успешно (Cytoscape возвращает RGB, а мы передаем HEX - это нормально)
     } catch (err) {
       console.error(`❌ Ошибка применения стиля к связи ${edge.data('id')}:`, err)
@@ -959,7 +959,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             {/* Предупреждение о неактивных связях */}
             {brainData && brainData.connections.length > 0 && brainData.connections.every(c => !c.enabled) && (
@@ -967,7 +967,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
                 ⚠️ Все связи неактивны
               </div>
             )}
-            
+
             {/* Управление layout */}
             <select
               value={layout}
@@ -979,7 +979,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
               <option value="grid">Сетка</option>
               <option value="random">Случайный</option>
             </select>
-            
+
             <button
               onClick={applyLayout}
               className="btn-secondary p-2"
@@ -987,7 +987,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
             >
               <RotateCcw className="h-4 w-4" />
             </button>
-            
+
             {/* Показать/скрыть веса */}
             <button
               onClick={() => setShowWeights(!showWeights)}
@@ -996,7 +996,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
             >
               <Eye className="h-4 w-4" />
             </button>
-            
+
             {/* Показать/скрыть неактивные связи */}
             <button
               onClick={() => setShowDisabledConnections(!showDisabledConnections)}
@@ -1005,14 +1005,14 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
             >
               <Activity className="h-4 w-4" />
             </button>
-            
+
             {/* Индикатор состояния связей */}
             {brainData && (
               <div className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
                 Связи: {brainData.connections.filter(c => c.enabled).length}/{brainData.connections.length}
               </div>
             )}
-            
+
             {/* Размер узлов */}
             <select
               value={nodeSize}
@@ -1024,7 +1024,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
               <option value={40}>40</option>
               <option value={50}>50</option>
             </select>
-            
+
             {/* Статистика */}
             <button
               onClick={() => setShowStats(!showStats)}
@@ -1033,7 +1033,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
             >
               <BarChart3 className="h-4 w-4" />
             </button>
-            
+
             {/* Легенда */}
             <button
               onClick={() => setShowLegend(!showLegend)}
@@ -1042,7 +1042,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
             >
               <Info className="h-4 w-4" />
             </button>
-            
+
             {/* Экспорт */}
             <button
               onClick={() => exportGraph()}
@@ -1051,7 +1051,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
             >
               <Download className="h-4 w-4" />
             </button>
-            
+
             {/* Экспорт JSON */}
             <button
               onClick={() => exportGraph('json')}
@@ -1060,7 +1060,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
             >
               <Settings className="h-4 w-4" />
             </button>
-            
+
             {/* Сброс к исходному виду */}
             <button
               onClick={resetView}
@@ -1069,7 +1069,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
             >
               <RotateCcw className="h-4 w-4" />
             </button>
-            
+
             {/* Принудительное обновление размеров */}
             <button
               onClick={forceResize}
@@ -1078,7 +1078,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
             >
               <Activity className="h-4 w-4" />
             </button>
-            
+
             {/* Принудительное обновление стилей */}
             <button
               onClick={forceStyleUpdate}
@@ -1087,7 +1087,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
             >
               <RotateCcw className="h-4 w-4" />
             </button>
-            
+
             {/* Закрыть */}
             {onClose && (
               <button
@@ -1100,7 +1100,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
             )}
           </div>
         </div>
-        
+
         {/* Легенда */}
         {showLegend && (
           <div className="px-4 py-2 bg-gray-50 border-b">
@@ -1127,7 +1127,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Типы связей - левый столбец */}
               <div>
                 <h4 className="font-medium text-gray-800 mb-2 text-sm">Связи (положительные):</h4>
@@ -1150,7 +1150,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Типы связей - правый столбец */}
               <div>
                 <h4 className="font-medium text-gray-800 mb-2 text-sm">Связи (отрицательные):</h4>
@@ -1176,7 +1176,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
             </div>
           </div>
         )}
-        
+
         {/* Основной контент */}
         <div className="flex-1 flex">
           {/* Граф */}
@@ -1187,7 +1187,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
               style={{ minHeight: '500px' }}
             />
           </div>
-          
+
           {/* Панель справа */}
           {showStats && (
             <div className="w-80 border-l bg-gray-50 p-4 overflow-y-auto">
@@ -1198,7 +1198,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
                     <BarChart3 className="h-5 w-5 mr-2" />
                     Статистика мозга
                   </h3>
-                  
+
                   {/* Основные характеристики */}
                   <div className="bg-white p-3 rounded border mb-4">
                     <h4 className="font-medium text-gray-800 mb-2">Основные характеристики:</h4>
@@ -1221,7 +1221,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Сетевая статистика */}
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
@@ -1249,7 +1249,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
                       <span className="font-medium">{brainStats.avgPlasticity.toFixed(3)}</span>
                     </div>
                   </div>
-                  
+
                   {/* Распределение узлов по типам */}
                   <div className="mt-4">
                     <h4 className="font-medium text-gray-800 mb-2">Распределение узлов:</h4>
@@ -1262,7 +1262,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
                       ))}
                     </div>
                   </div>
-                  
+
                   {/* Функции активации */}
                   <div className="mt-4">
                     <h4 className="font-medium text-gray-800 mb-2">Функции активации:</h4>
@@ -1280,7 +1280,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
                       ))}
                     </div>
                   </div>
-                  
+
                   {/* Распределение связей */}
                   <div className="mt-4">
                     <h4 className="font-medium text-gray-800 mb-2">Распределение связей:</h4>
@@ -1303,7 +1303,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Диапазоны параметров */}
                   <div className="mt-4">
                     <h4 className="font-medium text-gray-800 mb-2">Диапазоны параметров:</h4>
@@ -1315,7 +1315,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
                         const maxBias = Math.max(...biases)
                         const minThreshold = Math.min(...thresholds)
                         const maxThreshold = Math.max(...thresholds)
-                        
+
                         return (
                           <>
                             <div className="flex justify-between">
@@ -1333,7 +1333,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
                   </div>
                 </div>
               )}
-              
+
               {/* Детальная информация о выбранном элементе */}
               {selectedElement && (
                 <div className="border-t pt-4">
@@ -1400,7 +1400,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
                   </div>
                 </div>
               )}
-              
+
               {/* Инструкции */}
               <div className="border-t pt-4 mt-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
@@ -1424,15 +1424,15 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
             </div>
           )}
         </div>
-        
+
         {/* Статистика внизу */}
         <div className="px-4 py-2 bg-gray-50 border-t">
           <div className="flex items-center justify-between text-sm text-gray-600">
             <span>
-              Узлов: {brainData?.nodes.length} | 
-              Связей: {brainData?.connections.filter(c => c.enabled).length} | 
+              Узлов: {brainData?.nodes.length} |
+              Связей: {brainData?.connections.filter(c => c.enabled).length} |
               {showDisabledConnections && `Неактивных: ${brainData?.connections.filter(c => !c.enabled).length || 0} | `}
-              Layout: {layout} | 
+              Layout: {layout} |
               {brainStats && `Плотность: ${(brainStats.networkDensity * 100).toFixed(1)}%`}
             </span>
             <button
@@ -1448,4 +1448,4 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
   )
 }
 
-export default BrainVisualizer 
+export default BrainVisualizer

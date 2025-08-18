@@ -159,4 +159,4 @@ npm run preview
 
 ## 📄 Лицензия
 
-MIT License - см. LICENSE файл. 
+MIT License - см. LICENSE файл.

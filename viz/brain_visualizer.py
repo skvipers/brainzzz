@@ -2,10 +2,12 @@
 Визуализация структуры мозга.
 """
 
-import numpy as np
+from typing import Dict, Optional
+
 import matplotlib.pyplot as plt
 import networkx as nx
-from typing import Optional, Dict, Any
+import numpy as np
+
 from brains import Brain
 
 

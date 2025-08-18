@@ -15,27 +15,27 @@ interface WebSocketProviderProps {
 
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }) => {
   const { setWebSocketConnected, handleWebSocketMessage } = useBrainStore()
-  
+
   // Стабилизируем колбэки с useCallback
   const handleOpen = useCallback(() => {
     setWebSocketConnected(true)
     console.log('🎉 WebSocket подключен к Brainzzz API')
   }, [setWebSocketConnected])
-  
+
   const handleClose = useCallback(() => {
     setWebSocketConnected(false)
     console.log('🔌 WebSocket отключен от Brainzzz API')
   }, [setWebSocketConnected])
-  
+
   const handleError = useCallback((error: Event) => {
     console.error('❌ WebSocket ошибка:', error)
     setWebSocketConnected(false)
   }, [setWebSocketConnected])
-  
+
   const handleMessage = useCallback((message: any) => {
     handleWebSocketMessage(message)
   }, [handleWebSocketMessage])
-  
+
   const { isConnected, sendMessage } = useWebSocket({
     url: 'ws://localhost:8000/ws',
     onOpen: handleOpen,

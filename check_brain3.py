@@ -1,5 +1,4 @@
 import requests
-import json
 
 # Проверяем мозг #3
 r = requests.get("http://localhost:8000/api/population/3")
@@ -20,7 +19,7 @@ else:
     print("Все связи активны")
 
 # Показываем все связи
-print(f"\nВсе связи:")
+print("\nВсе связи:")
 for c in data["connections"]:
     status = "🔴 НЕАКТИВНА" if not c["enabled"] else "🟢 активна"
     print(

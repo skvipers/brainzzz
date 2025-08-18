@@ -4,15 +4,9 @@
 """
 
 import asyncio
-import sys
-from pathlib import Path
 
-# Добавляем корневую директорию проекта в Python path
-project_root = Path(__file__).parent
-sys.path.insert(0, str(project_root))
-
-from web.redis_manager import redis_manager
 from web.event_bus import event_bus
+from web.redis_manager import redis_manager
 
 
 async def test_redis_connection():
@@ -27,7 +21,7 @@ async def test_redis_connection():
 
             # Получаем статистику
             stats = await redis_manager.get_system_stats()
-            print(f"📊 Статистика Redis:")
+            print("📊 Статистика Redis:")
             print(f"   Версия: {stats.get('redis_version', 'N/A')}")
             print(f"   Клиенты: {stats.get('connected_clients', 'N/A')}")
             print(f"   Память: {stats.get('used_memory_human', 'N/A')}")

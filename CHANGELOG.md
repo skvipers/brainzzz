@@ -81,4 +81,4 @@
 
 - Версии до 1.0.0 считаются pre-release
 - Breaking changes будут помечены как `BREAKING CHANGE:`
-- Deprecations будут помечены как `DEPRECATED:` 
+- Deprecations будут помечены как `DEPRECATED:`

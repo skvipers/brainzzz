@@ -2,8 +2,8 @@
 """
 Trello Integration Script for Brainzzz Project
 
-This script creates Trello cards based on project tasks and brain visualization features.
-Requires Trello API Key and Token for authentication.
+This script creates Trello cards based on project tasks and brain visualization
+features. Requires Trello API Key and Token for authentication.
 
 Usage:
     python trello_integration.py
@@ -16,10 +16,9 @@ Setup:
 """
 
 import os
+from typing import Dict, List, Optional
+
 import requests
-import json
-from typing import List, Dict, Optional
-from datetime import datetime
 
 # Try to load .env file if python-dotenv is available
 try:
@@ -28,7 +27,8 @@ try:
     load_dotenv()
 except ImportError:
     print(
-        "💡 Для автоматической загрузки .env файла установите: pip install python-dotenv"
+        "💡 Для автоматической загрузки .env файла установите: "
+        "pip install python-dotenv"
     )
 
 
@@ -133,10 +133,13 @@ def create_brainzzz_cards(client: TrelloClient, board_id: str) -> None:
             "name": "🧠 Fix Cytoscape Visualization Issues",
             "desc": """**Completed ✅**
 
-Fixed the issue where brain connections (edges) were not displaying in the Cytoscape visualization.
+Fixed the issue where brain connections (edges) were not displaying in the
+Cytoscape visualization.
 
-**Problem**: Duplicate edge IDs were causing Cytoscape to fail when adding connections.
-**Solution**: Changed edge ID generation from `conn.id.toString()` to `edge_${conn.id}_${conn.from}_${conn.to}` for unique identification.
+**Problem**: Duplicate edge IDs were causing Cytoscape to fail when adding
+connections.
+**Solution**: Changed edge ID generation from `conn.id.toString()` to
+`edge_${conn.id}_${conn.from}_${conn.to}` for unique identification.
 
 **Technical Details**:
 - File: `web/frontend/src/components/BrainVisualizer.tsx`
@@ -145,7 +148,8 @@ Fixed the issue where brain connections (edges) were not displaying in the Cytos
         },
         {
             "name": "🎨 Improve Brain Visualization UI",
-            "desc": """Enhance the brain visualization interface with better user experience.
+            "desc": """Enhance the brain visualization interface with better user
+experience.
 
 **Tasks**:
 - [ ] Add connection weight labels toggle
@@ -161,7 +165,8 @@ Fixed the issue where brain connections (edges) were not displaying in the Cytos
             "name": "🔧 Clean Up Debug Logging",
             "desc": """Remove excessive debug logging from BrainVisualizer component.
 
-**Current Issue**: Too many console.log statements making development console noisy.
+**Current Issue**: Too many console.log statements making development console
+noisy.
 
 **Tasks**:
 - [ ] Remove diagnostic logs from successful operations
@@ -212,7 +217,8 @@ Fixed the issue where brain connections (edges) were not displaying in the Cytos
         },
         {
             "name": "🚀 Performance Optimization",
-            "desc": """Optimize the simulation performance for larger populations and longer runs.
+            "desc": """Optimize the simulation performance for larger populations
+and longer runs.
 
 **Optimization Targets**:
 - [ ] Parallel brain evaluation using Ray
@@ -270,7 +276,8 @@ Fixed the issue where brain connections (edges) were not displaying in the Cytos
         },
         {
             "name": "📈 Add Experiment Tracking and Analysis",
-            "desc": """Implement comprehensive experiment tracking and statistical analysis.
+            "desc": """Implement comprehensive experiment tracking and statistical
+analysis.
 
 **Features**:
 - [ ] Experiment versioning and comparison
@@ -346,7 +353,8 @@ def main():
         print("\n📋 Для получения токена:")
         print("1. Перейдите по ссылке:")
         print(
-            f"   https://trello.com/1/authorize?expiration=never&scope=read,write&response_type=token&key={api_key}"
+            f"   https://trello.com/1/authorize?expiration=never&scope=read,write&"
+            f"response_type=token&key={api_key}"
         )
         print("2. Нажмите 'Allow' для разрешения доступа")
         print("3. Скопируйте токен с открывшейся страницы")
@@ -369,7 +377,7 @@ def main():
             print("\nДоступные доски:")
             for i, board in enumerate(boards[:10]):  # Show first 10 boards
                 print(f"  {i+1}. {board['name']} (ID: {board['id']})")
-            print(f"  0. 🆕 Создать новую доску 'Brainzzz Project'")
+            print("  0. 🆕 Создать новую доску 'Brainzzz Project'")
 
             choice = input(
                 "\nВыберите доску (номер), введите ID доски, или 0 для создания новой: "
@@ -390,7 +398,7 @@ def main():
                 board_id = choice
 
         # Create cards
-        print(f"\n🚀 Создаю карточки для проекта Brainzzz...")
+        print("\n🚀 Создаю карточки для проекта Brainzzz...")
         create_brainzzz_cards(client, board_id)
 
     except requests.exceptions.RequestException as e:

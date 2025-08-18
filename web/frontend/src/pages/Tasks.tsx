@@ -143,8 +143,8 @@ const Tasks = () => {
   }
 
   const toggleTaskStatus = (taskId: string) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId 
+    setTasks(tasks.map(task =>
+      task.id === taskId
         ? { ...task, status: task.status === 'active' ? 'paused' : 'active' }
         : task
     ))
@@ -155,8 +155,8 @@ const Tasks = () => {
   }
 
   const resetTask = (taskId: string) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId 
+    setTasks(tasks.map(task =>
+      task.id === taskId
         ? { ...task, bestScore: 0, avgScore: 0, attempts: 0, lastRun: '-' }
         : task
     ))
@@ -242,7 +242,7 @@ const Tasks = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-4">Создать новую задачу</h3>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -256,7 +256,7 @@ const Tasks = () => {
                   placeholder="Например: XOR с 3 входами"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Описание
@@ -268,7 +268,7 @@ const Tasks = () => {
                   placeholder="Подробное описание задачи, входные данные, ожидаемый результат..."
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Тип задачи *
@@ -285,7 +285,7 @@ const Tasks = () => {
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Сложность *
@@ -302,7 +302,7 @@ const Tasks = () => {
                   ))}
                 </select>
               </div>
-              
+
               <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
                 <p><strong>Советы по созданию задач:</strong></p>
                 <ul className="list-disc list-inside mt-2 space-y-1">
@@ -312,7 +312,7 @@ const Tasks = () => {
                 </ul>
               </div>
             </div>
-            
+
             <div className="flex space-x-3 mt-6">
               <button
                 onClick={() => setShowNewTaskForm(false)}
@@ -385,8 +385,8 @@ const Tasks = () => {
                     <div className="flex items-center space-x-2">
                       <span>{task.bestScore.toFixed(2)}</span>
                       <div className="w-16 bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-green-500 h-2 rounded-full" 
+                        <div
+                          className="bg-green-500 h-2 rounded-full"
                           style={{ width: `${task.bestScore * 100}%` }}
                         />
                       </div>
@@ -440,4 +440,4 @@ const Tasks = () => {
   )
 }
 
-export default Tasks 
+export default Tasks

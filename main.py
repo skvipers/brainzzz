@@ -3,13 +3,15 @@
 Основной файл для запуска эволюционного инкубатора мозгов.
 """
 
-import numpy as np
-import time
 import logging
-from typing import List, Dict, Any
+import time
+from typing import List
+
+import numpy as np
+
 from brains import Brain, Genome, GrowthRules
-from tasks import TaskManager, XORTask, SequenceTask
 from evo import EvolutionEngine
+from tasks import SequenceTask, TaskManager, XORTask
 
 try:
     from viz import BrainVisualizer
@@ -18,13 +20,14 @@ try:
 except ImportError:
     VIZ_AVAILABLE = False
     print("⚠️ Визуализация недоступна (matplotlib/networkx не установлены)")
-try:
-    from dist import ParallelEngine
 
-    DIST_AVAILABLE = True
-except ImportError:
-    DIST_AVAILABLE = False
-    print("⚠️ Распределенные вычисления недоступны (ray не установлен)")
+# Примечание: Ray для распределенных вычислений можно добавить позже
+# try:
+#     from dist import ParallelEngine
+#     DIST_AVAILABLE = True
+# except ImportError:
+#     DIST_AVAILABLE = False
+#     print("⚠️ Распределенные вычисления недоступны (ray не установлен)")
 
 
 def setup_logging():
@@ -103,7 +106,8 @@ def run_evolution_cycle(
         # Показываем статистику популяции
         avg_fitness = np.mean(fitness_scores)
         max_fitness = np.max(fitness_scores)
-        avg_nodes = np.mean([b.phenotype.num_nodes for b in current_population])
+        node_counts = [b.phenotype.num_nodes for b in current_population]
+        avg_nodes = np.mean(node_counts)
 
         logging.info(f"Средняя приспособленность: {avg_fitness:.3f}")
         logging.info(f"Максимальная приспособленность: {max_fitness:.3f}")
@@ -169,11 +173,12 @@ def main():
         logger.info("Анализ результатов...")
         best_brain = max(final_population, key=lambda b: b.fitness)
 
-        logger.info(f"\n🏆 Лучший мозг:")
+        logger.info("\n🏆 Лучший мозг:")
         logger.info(f"   Приспособленность: {best_brain.fitness:.3f}")
         logger.info(f"   Узлы: {best_brain.phenotype.num_nodes}")
         logger.info(f"   GP: {best_brain.gp:.2f}")
-        logger.info(f"   Сложность: {best_brain.phenotype.get_network_density():.3f}")
+        complexity = best_brain.phenotype.get_network_density()
+        logger.info(f"   Сложность: {complexity:.3f}")
 
         # Показываем путь мысли лучшего мозга
         thought_path = best_brain.get_thought_path()
@@ -186,9 +191,11 @@ def main():
         else:
             logger.info("Визуализация недоступна")
 
-        print(
-            f"\n✅ Эволюция завершена! Лучший мозг имеет приспособленность {best_brain.fitness:.3f}"
+        message = (
+            f"\n✅ Эволюция завершена! "
+            f"Лучший мозг имеет приспособленность {best_brain.fitness:.3f}"
         )
+        print(message)
 
     except Exception as e:
         logger.error(f"Ошибка в основном цикле: {e}", exc_info=True)

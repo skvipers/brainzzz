@@ -4,8 +4,9 @@
 """
 
 import numpy as np
+
 from brains import Brain, Genome, GrowthRules
-from tasks import TaskManager, XORTask, SequenceTask
+from tasks import SequenceTask, TaskManager, XORTask
 
 
 def test_basic_functionality():
@@ -53,7 +54,8 @@ def test_basic_functionality():
     print("\n4. Тестирование роста...")
     print(f"   Может расти: {brain.growth_rules._can_grow(brain)}")
     print(
-        f"   Доступные типы роста: {brain.growth_rules.get_available_growth_types(brain)}"
+        f"   Доступные типы роста: "
+        f"{brain.growth_rules.get_available_growth_types(brain)}"
     )
 
     # Даём GP для роста

@@ -1,0 +1,37 @@
+[tool.black]
+line-length = 88
+target-version = ["py38", "py39", "py310", "py311"]
+extend-exclude = '''
+/(venv|node_modules|data)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 88
+combine_as_imports = true
+skip = ["venv", "node_modules", "data"]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203"]
+exclude = [
+  ".git",
+  "__pycache__",
+  "venv",
+  "node_modules",
+  "data",
+]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+warn_unused_ignores = true
+no_implicit_optional = true
+check_untyped_defs = true
+disallow_incomplete_defs = false
+pretty = true
+exclude = [
+  "venv",
+  "node_modules",
+  "data",
+]

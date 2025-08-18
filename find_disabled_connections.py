@@ -5,9 +5,9 @@
 Проверяет API endpoints и показывает, у каких мозгов есть disabled connections.
 """
 
+from typing import Dict
+
 import requests
-import json
-from typing import Dict, List
 
 
 def check_brain_connections(
@@ -74,7 +74,8 @@ def find_brains_with_disabled_connections(
                 print(f"✅ Найдены неактивные связи: {result['disabled_connections']}")
                 for disabled in result["disabled_list"]:
                     print(
-                        f"   🔗 Связь {disabled['id']}: {disabled['from']} → {disabled['to']} (вес: {disabled['weight']})"
+                        f"   🔗 Связь {disabled['id']}: {disabled['from']} → "
+                        f"{disabled['to']} (вес: {disabled['weight']})"
                     )
             else:
                 brains_without_disabled.append(result)
@@ -100,7 +101,8 @@ def find_brains_with_disabled_connections(
     if brains_with_disabled:
         print("\n🎯 РЕКОМЕНДАЦИЯ:")
         print(
-            f"Для тестирования неактивных связей используйте мозг #{brains_with_disabled[0]['brain_id']}"
+            f"Для тестирования неактивных связей используйте мозг "
+            f"#{brains_with_disabled[0]['brain_id']}"
         )
         print("Включите показ неактивных связей кнопкой с иконкой Activity")
 

@@ -39,7 +39,7 @@ const BrainDetail = () => {
   useEffect(() => {
     const fetchBrainDetail = async () => {
       if (!id) return
-      
+
       try {
         setLoading(true)
         const response = await fetch(`/api/population/${id}`)
@@ -138,7 +138,7 @@ const BrainDetail = () => {
             <span>К популяции</span>
           </Link>
         </div>
-        
+
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
@@ -148,7 +148,7 @@ const BrainDetail = () => {
               Детальная информация о структуре и параметрах
             </p>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
               brainDetail.fitness > 0.8 ? 'bg-green-100 text-green-800' :
@@ -219,7 +219,7 @@ const BrainDetail = () => {
             <Brain className="h-5 w-5 text-brain-600" />
             <span>Узлы ({brainDetail.nodes.length})</span>
           </h3>
-          
+
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {brainDetail.nodes.map((node) => (
               <div
@@ -258,7 +258,7 @@ const BrainDetail = () => {
             <Network className="h-5 w-5 text-green-600" />
             <span>Связи ({brainDetail.connections.length})</span>
           </h3>
-          
+
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {brainDetail.connections.map((conn) => (
               <div
@@ -302,7 +302,7 @@ const BrainDetail = () => {
           <BarChart3 className="h-5 w-5 text-purple-600" />
           <span>Визуализация структуры</span>
         </h3>
-        
+
         <div className="h-96 bg-gray-50 rounded-lg flex items-center justify-center">
           <div className="text-center">
             <Network className="mx-auto h-16 w-16 text-gray-400 mb-4" />
@@ -310,7 +310,7 @@ const BrainDetail = () => {
             <p className="text-sm text-gray-500 mb-4">
               Здесь будет интерактивная визуализация через Cytoscape.js
             </p>
-            <button 
+            <button
               className="btn-primary flex items-center mx-auto space-x-2"
               onClick={() => setShowVisualizer(true)}
             >
@@ -334,7 +334,7 @@ const BrainDetail = () => {
                 ×
               </button>
             </div>
-            
+
             {brainDetail.nodes[selectedNode] && (
               <div className="space-y-3">
                 <div>
@@ -375,7 +375,7 @@ const BrainDetail = () => {
                 ×
               </button>
             </div>
-            
+
             {brainDetail.connections[selectedConnection] && (
               <div className="space-y-3">
                 <div>
@@ -421,4 +421,4 @@ const BrainDetail = () => {
   )
 }
 
-export default BrainDetail 
+export default BrainDetail

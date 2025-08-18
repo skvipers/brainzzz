@@ -3,7 +3,7 @@ import { Brain, Users, TrendingUp, Target, Settings } from 'lucide-react'
 
 const Layout = () => {
   const location = useLocation()
-  
+
   const navigation = [
     { name: 'Дашборд', href: '/', icon: Brain },
     { name: 'Популяция', href: '/population', icon: Users },
@@ -11,7 +11,7 @@ const Layout = () => {
     { name: 'Задачи', href: '/tasks', icon: Target },
     { name: 'Настройки', href: '/settings', icon: Settings },
   ]
-  
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
@@ -24,7 +24,7 @@ const Layout = () => {
             <span className="text-xl font-bold text-gray-900">Brainzzz</span>
           </div>
         </div>
-        
+
         <nav className="mt-8 px-4">
           <ul className="space-y-2">
             {navigation.map((item) => {
@@ -47,7 +47,7 @@ const Layout = () => {
             })}
           </ul>
         </nav>
-        
+
         <div className="absolute bottom-4 left-4 right-4">
           <div className="rounded-lg bg-gray-50 p-4">
             <div className="flex items-center space-x-3">
@@ -60,7 +60,7 @@ const Layout = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Main content */}
       <div className="pl-64">
         <main className="py-8">
@@ -71,4 +71,4 @@ const Layout = () => {
   )
 }
 
-export default Layout 
+export default Layout

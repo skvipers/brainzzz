@@ -2,11 +2,11 @@
 Event Bus для интеграции Ray с Redis.
 """
 
-import json
 import asyncio
 import logging
-from typing import Dict, Any, List, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 from .redis_manager import redis_manager
 
 logger = logging.getLogger(__name__)

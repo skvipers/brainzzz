@@ -3,10 +3,12 @@
 """
 
 import time
+
 import numpy as np
-from brains import Brain, Genome, Phenotype, GrowthRules
-from tasks import TaskManager, XORTask, SequenceTask
 from dist import ParallelEngine, RayManager
+
+from brains import Brain, Genome, GrowthRules
+from tasks import SequenceTask, TaskManager, XORTask
 
 
 def test_parallel_evaluation():
@@ -74,7 +76,7 @@ def test_parallel_evaluation():
 
         # Получаем статистику популяции
         stats = parallel_engine.get_population_statistics(population, task_manager)
-        print(f"\n📈 Статистика популяции:")
+        print("\n📈 Статистика популяции:")
         print(f"   Размер: {stats['population_size']}")
         print(f"   Валидных оценок: {stats['valid_evaluations']}")
         print(f"   Средняя приспособленность: {stats['avg_fitness']:.3f}")

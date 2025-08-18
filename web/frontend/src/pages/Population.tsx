@@ -12,26 +12,26 @@ const Population = () => {
   useEffect(() => {
     fetchPopulation()
     fetchStats() // Добавляем загрузку статистики
-    
+
     // Обновляем данные каждые 5 секунд для отображения актуальной информации
     const interval = setInterval(() => {
       fetchPopulation()
       fetchStats()
     }, 5000)
-    
+
     return () => clearInterval(interval)
   }, [fetchPopulation, fetchStats])
 
   // Фильтрация и сортировка
   const filteredPopulation = population
-    .filter(brain => 
+    .filter(brain =>
       brain.id.toString().includes(searchTerm) ||
       brain.fitness.toString().includes(searchTerm)
     )
     .sort((a, b) => {
       let aValue: number
       let bValue: number
-      
+
       switch (sortBy) {
         case 'fitness':
           aValue = a.fitness
@@ -57,7 +57,7 @@ const Population = () => {
           aValue = a.fitness
           bValue = b.fitness
       }
-      
+
       return sortOrder === 'asc' ? aValue - bValue : bValue - aValue
     })
 
@@ -173,7 +173,7 @@ const Population = () => {
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brain-500 focus:border-transparent"
               />
             </div>
-            
+
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -250,8 +250,8 @@ const Population = () => {
                     <div className="flex items-center space-x-2">
                       <span>{brain.gp.toFixed(1)}</span>
                       <div className="w-16 bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-brain-500 h-2 rounded-full" 
+                        <div
+                          className="bg-brain-500 h-2 rounded-full"
                           style={{ width: `${Math.min(brain.gp / 20 * 100, 100)}%` }}
                         />
                       </div>
@@ -298,4 +298,4 @@ const Population = () => {
   )
 }
 
-export default Population 
+export default Population

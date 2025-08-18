@@ -30,4 +30,4 @@ If applicable, add screenshots to help explain your problem.
  - Browser: [e.g. Chrome 96, Firefox 95]
 
 **Additional context**
-Add any other context about the problem here. 
+Add any other context about the problem here.

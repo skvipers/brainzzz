@@ -11,10 +11,10 @@ const Dashboard = () => {
     // Загружаем начальные данные
     fetchPopulation()
     fetchStats()
-    
+
     // Убираем автоматическое обновление - теперь данные обновляются через WebSocket
   }, [fetchPopulation, fetchStats])
-  
+
   const handleStartEvolution = async () => {
     try {
       await startEvolution(0.3) // стандартная скорость мутации
@@ -83,14 +83,14 @@ const Dashboard = () => {
       changeType: 'negative' as const,
     },
   ]
-  
+
   const recentActivity = [
     { id: 1, type: 'evolution' as const, message: 'Завершена эволюция поколения 15', time: '2 мин назад' },
     { id: 2, type: 'growth' as const, message: 'Мозг #7 вырос на 3 узла', time: '5 мин назад' },
     { id: 3, type: 'task' as const, message: 'Задача XOR решена с точностью 98%', time: '12 мин назад' },
     { id: 4, type: 'mutation' as const, message: 'Применены мутации к 12 мозгам', time: '18 мин назад' },
   ]
-  
+
   return (
     <div className="px-8">
       <div className="mb-8 flex justify-between items-center">
@@ -98,7 +98,7 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold text-gray-900">Дашборд</h1>
           <p className="text-gray-600">Обзор состояния популяции и эволюции</p>
         </div>
-        
+
         {/* WebSocket статус */}
         <div className="flex items-center space-x-2">
           <div className={`flex items-center space-x-2 px-3 py-2 rounded-lg ${
@@ -116,11 +116,11 @@ const Dashboard = () => {
               </>
             )}
           </div>
-          
+
           {/* Убрали блок "Последнее событие" для чистоты интерфейса */}
         </div>
       </div>
-      
+
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {metrics.map((metric) => (
@@ -136,7 +136,7 @@ const Dashboard = () => {
             </div>
             <div className="mt-4 flex items-center">
               <span className={`text-sm font-medium ${
-                metric.changeType === 'positive' ? 'text-green-600' : 
+                metric.changeType === 'positive' ? 'text-green-600' :
                 metric.changeType === 'negative' ? 'text-red-600' : 'text-gray-600'
               }`}>
                 {metric.change}
@@ -146,7 +146,7 @@ const Dashboard = () => {
           </div>
         ))}
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Population Overview */}
         <div className="card">
@@ -173,7 +173,7 @@ const Dashboard = () => {
             </div>
           )}
         </div>
-        
+
         {/* Recent Activity */}
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Последняя активность</h3>
@@ -195,26 +195,26 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Quick Actions */}
       <div className="mt-8">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Быстрые действия</h3>
         <div className="flex space-x-4">
-          <button 
+          <button
             onClick={handleStartEvolution}
             className="btn-primary flex items-center space-x-2"
           >
             <Zap className="h-4 w-4" />
             <span>Запустить эволюцию</span>
           </button>
-          <button 
+          <button
             onClick={handleEvaluatePopulation}
             className="btn-secondary flex items-center space-x-2"
           >
             <Activity className="h-4 w-4" />
             <span>Оценить популяцию</span>
           </button>
-          <button 
+          <button
             onClick={handleAddTask}
             className="btn-secondary flex items-center space-x-2"
           >
@@ -227,4 +227,4 @@ const Dashboard = () => {
   )
 }
 
-export default Dashboard 
+export default Dashboard

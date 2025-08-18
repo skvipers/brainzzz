@@ -3,11 +3,12 @@ Redis менеджер для работы с событиями Brainzzz.
 """
 
 import json
-import asyncio
 import logging
-from typing import Dict, Any, Optional, Callable
 from datetime import datetime
+from typing import Any, Callable, Dict, Optional
+
 import redis.asyncio as redis
+
 from .settings import settings
 
 logger = logging.getLogger(__name__)

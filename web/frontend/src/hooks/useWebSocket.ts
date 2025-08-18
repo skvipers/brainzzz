@@ -34,19 +34,19 @@ export const useWebSocket = ({
 
   const connect = useCallback(() => {
     if (isConnectingRef.current) return
-    
+
     // Проверяем, не подключены ли уже
     if (wsRef.current && isConnected) {
       console.log('🔌 WebSocket уже подключен, пропускаю')
       return
     }
-    
+
     try {
       isConnectingRef.current = true
       console.log('🔌 Подключаюсь к WebSocket:', url)
-      
+
       const ws = new WebSocket(url)
-      
+
       ws.onopen = () => {
         console.log('✅ WebSocket соединение установлено')
         setIsConnected(true)
@@ -70,11 +70,11 @@ export const useWebSocket = ({
         setIsConnected(false)
         isConnectingRef.current = false
         onClose?.()
-        
+
         // Попытка переподключения только если это не было намеренное закрытие
         if (event.code !== 1000 && reconnectAttempts < maxReconnectAttempts) {
           console.log(`🔄 Попытка переподключения ${reconnectAttempts + 1}/${maxReconnectAttempts}`)
-          
+
           reconnectTimeoutRef.current = setTimeout(() => {
             setReconnectAttempts(prev => prev + 1)
             connect()
@@ -100,20 +100,20 @@ export const useWebSocket = ({
 
   const disconnect = useCallback(() => {
     console.log('🔌 Вызываю disconnect')
-    
+
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current)
       reconnectTimeoutRef.current = null
       console.log('🔌 Таймер переподключения очищен')
     }
-    
+
     if (wsRef.current) {
       console.log('🔌 Закрываю WebSocket соединение')
       wsRef.current.close(1000) // Нормальное закрытие
       wsRef.current = null
       console.log('🔌 WebSocket объект очищен')
     }
-    
+
     setIsConnected(false)
     setReconnectAttempts(0)
     isConnectingRef.current = false
@@ -136,7 +136,7 @@ export const useWebSocket = ({
 
   useEffect(() => {
     connect()
-    
+
     return () => {
       disconnect()
     }
