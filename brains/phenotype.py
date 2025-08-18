@@ -193,8 +193,7 @@ class Phenotype:
         """
         max_connections = self.num_nodes * (self.num_nodes - 1)
         actual_connections = sum(
-            1 for conn in self.genome.connection_genes
-            if conn.enabled
+            1 for conn in self.genome.connection_genes if conn.enabled
         )
         return actual_connections / max_connections if max_connections > 0 else 0.0
 

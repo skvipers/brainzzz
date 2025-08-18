@@ -105,8 +105,7 @@ class Selection:
             self.strategy = strategy
         else:
             raise ValueError(
-                f"Неизвестная стратегия: {strategy}. "
-                f"Доступные: {valid_strategies}"
+                f"Неизвестная стратегия: {strategy}. " f"Доступные: {valid_strategies}"
             )
 
     def set_tournament_size(self, size: int):
