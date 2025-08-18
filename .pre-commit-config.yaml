@@ -1,3 +1,4 @@
+---
 repos:
   # Python форматирование и линтинг
   - repo: https://github.com/psf/black
@@ -22,6 +23,18 @@ repos:
     hooks:
       - id: flake8
         args: [--max-line-length=88, --extend-ignore=E203]
+        types: [python]
+
+  # Type checking (mypy)
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.0
+    hooks:
+      - id: mypy
+        name: mypy (brains/evo/tasks/api)
+        args: [--ignore-missing-imports]
+        files: ^(brains|evo|tasks|api)/
+        additional_dependencies:
+          - types-redis==4.6.0.20241004
         types: [python]
 
   # Проверка безопасности
@@ -96,9 +109,40 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
+      - id: check-toml
+      - id: pretty-format-json
+        args: [--autofix, --indent, "2"]
       - id: check-added-large-files
       - id: check-merge-conflict
       - id: check-case-conflict
       - id: debug-statements
       - id: detect-private-key
       - id: name-tests-test
+
+  # YAML linting (stricter than check-yaml)
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        name: yamllint
+        files: \.(yaml|yml)$
+        types: [file]
+        args:
+          - -d
+          - "{extends: default, rules: {line-length: disable, truthy: disable, new-lines: disable, comments: {min-spaces-from-content: 1}}}"
+
+  # Pre-push hooks
+  - repo: local
+    hooks:
+      - id: backend-tests-pre-push
+        name: Backend tests (pre-push)
+        entry: python -m pytest -q tests
+        language: system
+        stages: [push]
+        pass_filenames: false
+      - id: frontend-build-pre-push
+        name: Frontend build (pre-push)
+        entry: python scripts/frontend_build.py
+        language: system
+        stages: [push]
+        pass_filenames: false

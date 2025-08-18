@@ -56,7 +56,7 @@ class SequenceTask(BaseTask):
         np.random.seed(42)  # Для воспроизводимости
         for _ in range(6):
             input_seq = np.random.choice([0.0, 1.0], size=self.sequence_length)
-            output_seq = input_seq.copy()  # Идеальный ответ - повторить вход
+            output_seq = np.array(input_seq, copy=True)
             test_sequences.append((input_seq, output_seq))
 
         return test_sequences

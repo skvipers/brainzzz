@@ -208,7 +208,7 @@ class TaskManager:
 
         # Статистика по задачам
         for i, task in enumerate(self.tasks):
-            task_scores = all_scores[:, i]
+            task_scores = all_scores[:, i]  # type: ignore
             stats["task_performance"][task.name] = {
                 "average_score": float(np.mean(task_scores)),
                 "best_score": float(np.max(task_scores)),

@@ -1,33 +1,34 @@
+---
 name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.8'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
 
-    - name: Install linting tools
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 black isort mypy
+      - name: Install linting tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black isort mypy
 
-    - name: Run linting
-      run: |
-        flake8 brains/ evo/ tasks/ api/ --max-line-length=88 --extend-ignore=E203
-        black --check brains/ evo/ tasks/ api/
-        isort --check-only brains/ evo/ tasks/ api/
-        mypy brains/ evo/ tasks/ api/
+      - name: Run linting
+        run: |
+          flake8 brains/ evo/ tasks/ api/ --max-line-length=88 --extend-ignore=E203
+          black --check brains/ evo/ tasks/ api/
+          isort --check-only brains/ evo/ tasks/ api/
+          mypy brains/ evo/ tasks/ api/
 
   test-backend:
     runs-on: ubuntu-latest
@@ -36,81 +37,81 @@ jobs:
         python-version: [3.8, 3.9, "3.10", "3.11"]
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install -r api/requirements.txt
-        pip install pytest pytest-cov
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r api/requirements.txt
+          pip install pytest pytest-cov
 
-    - name: Run backend tests
-      run: |
-        pytest tests/ -v --cov=brains --cov=evo --cov=tasks --cov-report=xml
+      - name: Run backend tests
+        run: |
+          pytest tests/ -v --cov=brains --cov=evo --cov=tasks --cov-report=xml
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.xml
-        fail_ci_if_error: false
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
 
   test-frontend:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: web/frontend/package-lock.json
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: web/frontend/package-lock.json
 
-    - name: Install frontend dependencies
-      working-directory: web/frontend
-      run: npm ci
+      - name: Install frontend dependencies
+        working-directory: web/frontend
+        run: npm ci
 
-    - name: Run frontend tests
-      working-directory: web/frontend
-      run: npm test
+      - name: Run frontend tests
+        working-directory: web/frontend
+        run: npm test
 
-    - name: Build frontend
-      working-directory: web/frontend
-      run: npm run build
+      - name: Build frontend
+        working-directory: web/frontend
+        run: npm run build
 
   security:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.8'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
 
-    - name: Install security tools
-      run: |
-        python -m pip install --upgrade pip
-        pip install bandit safety
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit safety
 
-    - name: Run security checks
-      run: |
-        bandit -r brains/ evo/ tasks/ api/ -f json -o bandit-report.json
-        safety scan --full-report --output json --save-as json safety-report.json
+      - name: Run security checks
+        run: |
+          bandit -r brains/ evo/ tasks/ api/ -f json -o bandit-report.json
+          safety scan --full-report --output json --save-as json safety-report.json --no-interactive
 
-    - name: Upload security reports
-      uses: actions/upload-artifact@v4
-      with:
-        name: security-reports
-        path: |
-          bandit-report.json
-          safety-report.json
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            bandit-report.json
+            safety-report.json
 
   deploy-staging:
     needs: [test-backend, test-frontend, lint, security]
@@ -118,16 +119,16 @@ jobs:
     if: github.ref == 'refs/heads/develop'
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Deploy to staging
-      run: |
-        echo "Deploying to staging environment..."
-        # Add your staging deployment logic here
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging environment..."
+          # Add your staging deployment logic here
 
-    - name: Notify staging deployment
-      run: |
-        echo "Staging deployment completed successfully!"
+      - name: Notify staging deployment
+        run: |
+          echo "Staging deployment completed successfully!"
 
   deploy-production:
     needs: [test-backend, test-frontend, lint, security]
@@ -136,13 +137,13 @@ jobs:
     # environment: production  # Временно отключаем для упрощения CI
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Deploy to production
-      run: |
-        echo "Deploying to production environment..."
-        # Add your production deployment logic here
+      - name: Deploy to production
+        run: |
+          echo "Deploying to production environment..."
+          # Add your production deployment logic here
 
-    - name: Notify production deployment
-      run: |
-        echo "Production deployment completed successfully!"
+      - name: Notify production deployment
+        run: |
+          echo "Production deployment completed successfully!"

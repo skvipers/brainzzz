@@ -115,8 +115,8 @@ class EvolutionEngine:
         }
 
         self.generation_history.append(stats)
-        self.best_fitness_history.append(stats["best_fitness"])
-        self.avg_fitness_history.append(stats["avg_fitness"])
+        self.best_fitness_history.append(float(stats["best_fitness"]))
+        self.avg_fitness_history.append(float(stats["avg_fitness"]))
 
         # Ограничиваем размер истории
         if len(self.generation_history) > 1000:
@@ -163,7 +163,7 @@ class EvolutionEngine:
             change = self.best_fitness_history[-i] - self.best_fitness_history[-i - 1]
             recent_changes.append(change)
 
-        return np.mean(recent_changes)
+        return float(np.mean(recent_changes))
 
     def get_best_brain(self, population: List[Brain]) -> Any:
         """
@@ -198,8 +198,8 @@ class EvolutionEngine:
         gp_values = [brain.gp for brain in population]
 
         # Нормализуем значения
-        node_std = np.std(node_counts) / max(1, np.mean(node_counts))
-        gp_std = np.std(gp_values) / max(1, np.mean(gp_values))
+        node_std = float(np.std(node_counts) / max(1.0, float(np.mean(node_counts))))
+        gp_std = float(np.std(gp_values) / max(1.0, float(np.mean(gp_values))))
 
         # Общая оценка разнообразия
         diversity = (node_std + gp_std) / 2.0
