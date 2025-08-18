@@ -269,13 +269,13 @@ const Population = () => {
                       >
                         <Eye className="h-4 w-4" />
                       </Link>
-                      <button
-                        onClick={() => window.open(`/brain_visualizer.html?brain_id=${brain.id}`, '_blank')}
+                      <Link
+                        to={`/brain/${brain.id}?view=visualizer`}
                         className="text-purple-600 hover:text-purple-900"
                         title="Визуализация"
                       >
                         <Network className="h-4 w-4" />
-                      </button>
+                      </Link>
                     </div>
                   </td>
                 </tr>

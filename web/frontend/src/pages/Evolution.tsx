@@ -16,7 +16,7 @@ interface EvolutionHistoryEntry {
 }
 
 const Evolution = () => {
-  const { stats, evaluatePopulation, fetchStats, loading } = useBrainStore()
+  const { stats, evaluatePopulation, fetchStats, loading, startEvolution, fetchPopulation } = useBrainStore()
   const [mutationRate, setMutationRate] = useState(0.3)
   const [populationSize, setPopulationSize] = useState(20)
   const [isEvolving, setIsEvolving] = useState(false)
@@ -52,33 +52,8 @@ const Evolution = () => {
     try {
       setIsEvolving(true)
       
-      // Сначала изменяем размер популяции
-      const resizeResponse = await fetch('/api/population/resize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ population_size: populationSize, mutation_rate: mutationRate })
-      })
-      
-      if (!resizeResponse.ok) {
-        throw new Error('Ошибка изменения размера популяции')
-      }
-      
-      const resizeResult = await resizeResponse.json()
-      console.log('Размер популяции изменен:', resizeResult)
-      
-      // Затем запускаем эволюцию
-      const evolutionResponse = await fetch('/api/evolve', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ population_size: populationSize, mutation_rate: mutationRate })
-      })
-      
-      if (!evolutionResponse.ok) {
-        throw new Error('Ошибка запуска эволюции')
-      }
-      
-      const evolutionResult = await evolutionResponse.json()
-      console.log('Эволюция запущена:', evolutionResult)
+      // Запускаем эволюцию через store
+      await startEvolution(mutationRate, populationSize)
       
       // Добавляем в историю
       const newEntry: EvolutionHistoryEntry = {
@@ -87,7 +62,7 @@ const Evolution = () => {
         action: 'Эволюция',
         populationSize: populationSize,
         mutationRate: mutationRate,
-        message: evolutionResult.message,
+        message: 'Эволюция запущена успешно',
         status: 'success',
         generation: (stats.generation || 0) + 1,
         bestFitness: stats.max_fitness || 0,
@@ -96,16 +71,16 @@ const Evolution = () => {
       
       setEvolutionHistory(prev => [newEntry, ...prev.slice(0, 9)]) // Оставляем последние 10 записей
       
-      // Обновляем статистику
+      // Обновляем данные популяции и статистику
+      await fetchPopulation()
       await evaluatePopulation()
-      
-      // Обновляем статистику для отображения
       await fetchStats()
       
       // Добавляем небольшую задержку и повторно обновляем для гарантии
       setTimeout(async () => {
+        await fetchPopulation()
         await fetchStats()
-      }, 500)
+      }, 1000)
       
     } catch (error) {
       console.error('Ошибка:', error)
@@ -132,18 +107,8 @@ const Evolution = () => {
 
   const handleResizePopulation = async () => {
     try {
-      const response = await fetch('/api/population/resize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ population_size: populationSize, mutation_rate: mutationRate })
-      })
-      
-      if (!response.ok) {
-        throw new Error('Ошибка изменения размера популяции')
-      }
-      
-      const result = await response.json()
-      console.log('Размер популяции изменен:', result)
+      // Изменяем размер популяции через store
+      await startEvolution(mutationRate, populationSize)
       
       // Добавляем в историю
       const newEntry: EvolutionHistoryEntry = {
@@ -152,7 +117,7 @@ const Evolution = () => {
         action: 'Изменение размера',
         populationSize: populationSize,
         mutationRate: mutationRate,
-        message: result.message,
+        message: 'Размер популяции изменен успешно',
         status: 'success',
         generation: stats.generation || 0,
         bestFitness: stats.max_fitness || 0,
@@ -161,19 +126,18 @@ const Evolution = () => {
       
       setEvolutionHistory(prev => [newEntry, ...prev.slice(0, 9)])
       
-      // Обновляем статистику
-      await evaluatePopulation()
-      
-      // Обновляем статистику для отображения
+      // Обновляем данные популяции и статистику
+      await fetchPopulation()
       await fetchStats()
       
       // Добавляем небольшую задержку и повторно обновляем для гарантии
       setTimeout(async () => {
+        await fetchPopulation()
         await fetchStats()
-      }, 500)
+      }, 1000)
       
     } catch (error) {
-      console.error('Ошибка:', error)
+      console.error('Ошибка изменения размера популяции:', error)
       
       const errorEntry: EvolutionHistoryEntry = {
         id: Date.now(),
@@ -202,6 +166,7 @@ const Evolution = () => {
             <button
               onClick={async () => {
                 setIsRefreshing(true)
+                await fetchPopulation()
                 await fetchStats()
                 setIsRefreshing(false)
               }}

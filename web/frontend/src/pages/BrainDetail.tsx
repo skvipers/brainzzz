@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Brain, Activity, Zap, Eye, BarChart3, Network } from 'lucide-react'
 import { useBrainStore } from '../stores/brainStore'
 import BrainVisualizer from '../components/BrainVisualizer'
@@ -24,12 +24,11 @@ interface BrainDetail {
   gp: number
   fitness: number
   age: number
-  genome_size: number
-  connection_count: number
 }
 
 const BrainDetail = () => {
   const { id } = useParams<{ id: string }>()
+  const [searchParams] = useSearchParams()
   const [brainDetail, setBrainDetail] = useState<BrainDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -58,6 +57,14 @@ const BrainDetail = () => {
 
     fetchBrainDetail()
   }, [id])
+
+  // Автоматически показываем визуализатор при переходе с параметром view=visualizer
+  useEffect(() => {
+    const view = searchParams.get('view')
+    if (view === 'visualizer' && brainDetail) {
+      setShowVisualizer(true)
+    }
+  }, [searchParams, brainDetail])
 
   const getNodeTypeColor = (type: string) => {
     switch (type) {
@@ -156,29 +163,29 @@ const BrainDetail = () => {
 
       {/* Основная статистика */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="card">
-          <div className="flex items-center space-x-3">
-            <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-              <Brain className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-600">Узлы</p>
-              <p className="text-2xl font-bold text-gray-900">{brainDetail.genome_size}</p>
-            </div>
-          </div>
-        </div>
+                 <div className="card">
+           <div className="flex items-center space-x-3">
+             <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
+               <Brain className="h-5 w-5 text-blue-600" />
+             </div>
+             <div>
+               <p className="text-sm font-medium text-gray-600">Узлы</p>
+               <p className="text-2xl font-bold text-gray-900">{brainDetail.nodes.length}</p>
+             </div>
+           </div>
+         </div>
 
-        <div className="card">
-          <div className="flex items-center space-x-3">
-            <div className="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center">
-              <Network className="h-5 w-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-600">Связи</p>
-              <p className="text-2xl font-bold text-gray-900">{brainDetail.connection_count}</p>
-            </div>
-          </div>
-        </div>
+         <div className="card">
+           <div className="flex items-center space-x-3">
+             <div className="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center">
+               <Network className="h-5 w-5 text-green-600" />
+             </div>
+             <div>
+               <p className="text-sm font-medium text-gray-600">Связи</p>
+               <p className="text-2xl font-bold text-gray-900">{brainDetail.connections.length}</p>
+             </div>
+           </div>
+         </div>
 
         <div className="card">
           <div className="flex items-center space-x-3">

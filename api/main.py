@@ -8,10 +8,10 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from core.settings import settings
-from core.adapters import redis_adapter, duckdb_adapter
-from ws.hub import websocket_hub
-from rest.endpoints import router as rest_router
+from api.core.settings import settings
+from api.core.adapters import redis_adapter, duckdb_adapter
+from api.ws.hub import websocket_hub
+from api.rest.endpoints import router as rest_router
 
 # Настройка логирования
 logging.basicConfig(level=getattr(logging, settings.log_level))

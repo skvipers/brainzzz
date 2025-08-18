@@ -9,8 +9,8 @@ from typing import Dict, Set, Any
 from fastapi import WebSocket, WebSocketDisconnect
 from datetime import datetime
 
-from core.schemas import WebSocketMessage, MessageType
-from core.adapters import redis_adapter
+from api.core.schemas import WebSocketMessage, MessageType
+from api.core.adapters import redis_adapter
 
 logger = logging.getLogger(__name__)
 

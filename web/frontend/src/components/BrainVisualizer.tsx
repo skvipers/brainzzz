@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import cytoscape from 'cytoscape'
+import cytoscape, { Core, NodeSingular, EdgeSingular } from 'cytoscape'
 import { Brain, Eye, Settings, Download, RotateCcw } from 'lucide-react'
 
 interface BrainNode {
@@ -36,9 +36,46 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
   } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [layout, setLayout] = useState<'grid' | 'circle' | 'random' | 'cola'>('cola')
+  const [layout, setLayout] = useState<'grid' | 'circle' | 'random' | 'concentric'>('concentric')
   const [showWeights, setShowWeights] = useState(true)
   const [nodeSize, setNodeSize] = useState(30)
+
+  // Функция валидации данных мозга
+  const validateBrainData = (data: any): boolean => {
+    if (!data || typeof data !== 'object') {
+      console.error('❌ Данные мозга не являются объектом:', data)
+      return false
+    }
+    
+    if (!Array.isArray(data.nodes) || !Array.isArray(data.connections)) {
+      console.error('❌ Отсутствуют nodes или connections:', data)
+      return false
+    }
+    
+    if (typeof data.gp !== 'number' || typeof data.fitness !== 'number' || typeof data.age !== 'number') {
+      console.error('❌ Отсутствуют обязательные поля gp, fitness или age:', data)
+      return false
+    }
+    
+    // Проверяем структуру узлов
+    for (const node of data.nodes) {
+      if (!node.id || !node.type || !node.activation || typeof node.bias !== 'number' || typeof node.threshold !== 'number') {
+        console.error('❌ Неверная структура узла:', node)
+        return false
+      }
+    }
+    
+    // Проверяем структуру связей
+    for (const conn of data.connections) {
+      if (!conn.id || !conn.from || !conn.to || typeof conn.weight !== 'number' || typeof conn.plasticity !== 'number' || typeof conn.enabled !== 'boolean') {
+        console.error('❌ Неверная структура связи:', conn)
+        return false
+      }
+    }
+    
+    console.log('✅ Данные мозга прошли валидацию')
+    return true
+  }
 
   // Загружаем данные о мозге
   useEffect(() => {
@@ -57,7 +94,12 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
         const data = await response.json()
         console.log('📊 Полученные данные:', data)
         
-        setBrainData(data)
+        // Валидируем данные перед установкой
+        if (validateBrainData(data)) {
+          setBrainData(data)
+        } else {
+          throw new Error('Неверная структура данных мозга')
+        }
       } catch (err) {
         console.error('❌ Ошибка загрузки данных:', err)
         setError(err instanceof Error ? err.message : 'Ошибка загрузки')
@@ -121,16 +163,16 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
             style: {
               'background-color': '#e5e7eb',
               'border-color': '#374151',
-              'border-width': 2,
-              'width': nodeSize,
-              'height': nodeSize,
+              'border-width': '2px',
+              'width': nodeSize.toString(),
+              'height': nodeSize.toString(),
               'label': 'data(label)',
-              'font-size': '10px',
+              'font-size': 10,
               'font-weight': 'bold',
               'text-valign': 'center',
               'text-halign': 'center',
               'text-wrap': 'wrap',
-              'text-max-width': nodeSize * 0.8
+              'text-max-width': (nodeSize * 0.8).toString()
             }
           },
           // Стили для входных узлов
@@ -173,15 +215,15 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
           {
             selector: 'edge',
             style: {
-              'width': 'data(weight)',
-              'line-color': function(ele: any) {
-                const weight = ele.data('weight')
+              'width': '2px',
+              'line-color': function(ele: EdgeSingular) {
+                const weight = ele.data('weight') as number
                 if (weight > 0.5) return '#10b981' // Зеленый для сильных положительных
                 if (weight < -0.5) return '#ef4444' // Красный для сильных отрицательных
                 return '#6b7280' // Серый для слабых
               },
-              'target-arrow-color': function(ele: any) {
-                const weight = ele.data('weight')
+              'target-arrow-color': function(ele: EdgeSingular) {
+                const weight = ele.data('weight') as number
                 if (weight > 0.5) return '#10b981'
                 if (weight < -0.5) return '#ef4444'
                 return '#6b7280'
@@ -190,20 +232,23 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
               'arrow-scale': 0.5,
               'curve-style': 'bezier',
               'label': 'data(label)',
-              'font-size': '8px',
+              'font-size': 8,
               'text-rotation': 'autorotate',
-              'text-margin-y': '-10px'
+              'text-margin-y': -10
             }
           }
         ],
         layout: {
           name: layout,
-          ...(layout === 'cola' && {
-            nodeSpacing: 50,
-            edgeLength: 100,
+          ...(layout === 'concentric' && {
+            concentric: function(node: any) {
+              return node.degree()
+            },
+            levelWidth: function(nodes: any) {
+              return 2
+            },
             animate: true,
-            randomize: false,
-            maxSimulationTime: 1500
+            animationDuration: 1000
           }),
           ...(layout === 'circle' && {
             radius: 200,
@@ -214,7 +259,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
             rows: Math.ceil(Math.sqrt(brainData.nodes.length)),
             cols: Math.ceil(Math.sqrt(brainData.nodes.length))
           })
-        }
+        } as any
       })
 
       console.log('✅ Cytoscape инициализирован успешно')
@@ -224,13 +269,13 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
 
       // Добавляем обработчики событий
       cy.on('tap', 'node', function(evt) {
-        const node = evt.target
+        const node = evt.target as NodeSingular
         const data = node.data()
         console.log('👆 Узел:', data)
       })
 
       cy.on('tap', 'edge', function(evt) {
-        const edge = evt.target
+        const edge = evt.target as EdgeSingular
         const data = edge.data()
         console.log('👆 Связь:', data)
       })
@@ -256,12 +301,15 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
     const cy = cyInstanceRef.current
     const layoutOptions = {
       name: layout,
-      ...(layout === 'cola' && {
-        nodeSpacing: 50,
-        edgeLength: 100,
+      ...(layout === 'concentric' && {
+        concentric: function(node: any) {
+          return node.degree()
+        },
+        levelWidth: function(nodes: any) {
+          return 2
+        },
         animate: true,
-        randomize: false,
-        maxSimulationTime: 1500
+        animationDuration: 1000
       }),
       ...(layout === 'circle' && {
         radius: 200,
@@ -272,7 +320,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
         rows: Math.ceil(Math.sqrt(brainData?.nodes.length || 1)),
         cols: Math.ceil(Math.sqrt(brainData?.nodes.length || 1))
       })
-    }
+    } as any
 
     cy.layout(layoutOptions).run()
   }
@@ -284,7 +332,6 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
     const cy = cyInstanceRef.current
     const png = cy.png({
       full: true,
-      quality: 1,
       output: 'blob'
     })
 
@@ -370,7 +417,7 @@ const BrainVisualizer = ({ brainId, onClose }: BrainVisualizerProps) => {
               onChange={(e) => setLayout(e.target.value as any)}
               className="input-field text-sm"
             >
-              <option value="cola">Cola (автоматический)</option>
+              <option value="concentric">Концентрический</option>
               <option value="circle">Круг</option>
               <option value="grid">Сетка</option>
               <option value="random">Случайный</option>
