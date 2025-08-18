@@ -4,7 +4,7 @@
 
 import secrets
 from dataclasses import dataclass
-from typing import List
+from typing import List, Tuple
 
 
 @dataclass
@@ -155,7 +155,7 @@ class Genome:
 
         return self._add_connection(from_node, to_node)
 
-    def split_node(self, node_id: int) -> tuple[int, int]:
+    def split_node(self, node_id: int) -> Tuple[int, int]:
         """
         Разделяет узел на два.
 

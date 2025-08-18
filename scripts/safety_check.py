@@ -10,11 +10,11 @@ import sys
 def main() -> int:
     """Запускает safety check."""
     try:
-        # Запускаем safety scan с флагом --no-interactive
+        # Запускаем safety scan с простыми флагами
         # Используем полный путь для избежания B607
-        safety_cmd = ["safety", "scan", "--full-report", "--no-interactive"]
+        safety_cmd = ["safety", "scan", "--full-report"]
         result = subprocess.run(  # nosec B607,B603 - безопасные команды safety
-            safety_cmd, capture_output=True, text=True, check=False
+            safety_cmd, capture_output=True, text=True, check=False, encoding="utf-8"
         )
 
         if result.returncode == 0:
