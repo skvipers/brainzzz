@@ -2,9 +2,9 @@
 Операторы мутации для эволюционного алгоритма.
 """
 
-import secrets
+import random  # nosec B311 - используется для стохастики эволюции, не для криптографии
 
-from brains import Genome
+from brains import Brain
 
 
 class Mutation:
@@ -20,7 +20,7 @@ class Mutation:
     def __init__(self, mutation_strength: float = 0.1):
         self.mutation_strength = mutation_strength
 
-    def mutate(self, brain: Genome):
+    def mutate(self, brain: Brain):
         """
         Применяет мутации к мозгу.
 
@@ -36,47 +36,49 @@ class Mutation:
         # Структурные мутации
         self._structural_mutation(brain)
 
-    def _mutate_genome(self, brain: Genome):
+    def _mutate_genome(self, brain: Brain):
         """Мутирует геном мозга."""
         # Применяем мутации к геному
-        brain.mutate(self.mutation_strength)
+        brain.genome.mutate(self.mutation_strength)
 
         # Обновляем фенотип
         brain.phenotype = brain.phenotype.__class__(brain.genome)
 
-    def _mutate_growth_rules(self, brain: Genome):
+    def _mutate_growth_rules(self, brain: Brain):
         """Мутирует правила роста."""
         growth_rules = brain.growth_rules
 
         # Мутируем параметры роста
-        if secrets.randbelow(100) < self.mutation_strength * 100:
-            growth_rules.growth_probability += secrets.uniform(-0.05, 0.05)
+        if random.random() < self.mutation_strength:  # nosec B311
+            growth_rules.growth_probability += random.uniform(-0.05, 0.05)  # nosec B311
             growth_rules.growth_probability = max(
                 0.01, min(0.5, growth_rules.growth_probability)
             )
 
-        if secrets.randbelow(100) < self.mutation_strength * 100:
-            growth_rules.complexity_penalty += secrets.uniform(-0.005, 0.005)
+        if random.random() < self.mutation_strength:  # nosec B311
+            growth_rules.complexity_penalty += random.uniform(
+                -0.005, 0.005
+            )  # nosec B311
             growth_rules.complexity_penalty = max(
                 0.001, min(0.1, growth_rules.complexity_penalty)
             )
 
-    def _structural_mutation(self, brain: Genome):
+    def _structural_mutation(self, brain: Brain):
         """Применяет структурные мутации."""
-        if secrets.randbelow(10) < self.mutation_strength * 10:
+        if random.random() < self.mutation_strength * 0.1:  # nosec B311
             # Случайно добавляем узел
             if brain.phenotype.num_nodes < brain.growth_rules.max_nodes:
                 brain.genome.add_node()
                 brain.phenotype = brain.phenotype.__class__(brain.genome)
 
-        if secrets.randbelow(10) < self.mutation_strength * 10:
+        if random.random() < self.mutation_strength * 0.1:  # nosec B311
             # Случайно добавляем соединение
             if len(brain.genome.connection_genes) < brain.growth_rules.max_connections:
                 # Выбираем случайные узлы
                 nodes = [node.id for node in brain.genome.node_genes]
                 if len(nodes) >= 2:
-                    from_node = secrets.choice(nodes)
-                    to_node = secrets.choice(nodes)
+                    from_node = random.choice(nodes)  # nosec B311
+                    to_node = random.choice(nodes)  # nosec B311
                     if from_node != to_node:
                         try:
                             brain.genome.add_connection(from_node, to_node)

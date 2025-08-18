@@ -2,7 +2,7 @@
 Основной движок эволюции для популяции мозгов.
 """
 
-import secrets
+import random  # nosec B311 - используется для стохастики эволюции, не для криптографии
 from typing import Any, Dict, List
 
 import numpy as np
@@ -76,13 +76,13 @@ class EvolutionEngine:
             parent2 = self.selection.select_parent(population)
 
             # Скрещивание
-            if secrets.randbelow(2) < self.crossover_rate:
+            if random.random() < self.crossover_rate:  # nosec B311
                 offspring = self.crossover.crossover(parent1, parent2)
             else:
                 offspring = parent1.clone()
 
             # Мутация
-            if secrets.randbelow(2) < self.mutation_rate:
+            if random.random() < self.mutation_rate:  # nosec B311
                 self.mutation.mutate(offspring)
 
             # Сброс приспособленности для нового потомка
