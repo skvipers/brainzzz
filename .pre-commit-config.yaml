@@ -55,6 +55,7 @@ repos:
         additional_dependencies:
           - bandit
           - safety
+        stages: [pre-push]
 
   # Frontend: ESLint
   - repo: local
