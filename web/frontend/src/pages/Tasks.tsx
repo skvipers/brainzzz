@@ -171,7 +171,13 @@ const Tasks = () => {
         lastRun: '-',
       };
       setTasks([...tasks, task]);
-      setNewTask({ name: '', description: '', type: 'custom', difficulty: 'medium', status: 'active' });
+      setNewTask({
+        name: '',
+        description: '',
+        type: 'custom',
+        difficulty: 'medium',
+        status: 'active',
+      });
       setShowNewTaskForm(false);
     }
   };
@@ -310,7 +316,10 @@ const Tasks = () => {
                 <select
                   value={newTask.type}
                   onChange={(e) =>
-                    setNewTask({ ...newTask, type: e.target.value as 'xor' | 'sequence' | 'custom' })
+                    setNewTask({
+                      ...newTask,
+                      type: e.target.value as 'xor' | 'sequence' | 'custom',
+                    })
                   }
                   className="input-field w-full"
                 >

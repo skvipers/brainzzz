@@ -8,7 +8,7 @@ describe('App', () => {
     render(
       <MemoryRouter>
         <App />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     // Проверяем, что приложение рендерится без ошибок
     expect(document.body).toBeInTheDocument();
