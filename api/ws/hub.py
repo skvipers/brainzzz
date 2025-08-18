@@ -5,7 +5,7 @@ WebSocket хаб для ретрансляции событий из Redis в б
 import asyncio
 import logging
 from datetime import datetime
-from typing import Any, Dict, Set
+from typing import Any, Dict, Optional, Set
 
 from core.adapters import redis_adapter
 from core.schemas import MessageType, WebSocketMessage
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class WebSocketHub:
     """Хаб для управления WebSocket соединениями."""
 
-    def __init__(self, max_connections: int = None):
+    def __init__(self, max_connections: Optional[int] = None):
         self.active_connections: Set[WebSocket] = set()
         self.redis_callback_task = None
         self.max_connections = max_connections or settings.ws_max_connections

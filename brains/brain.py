@@ -3,6 +3,7 @@
 """
 
 from dataclasses import dataclass, field
+from typing import List
 
 import numpy as np
 
@@ -43,7 +44,7 @@ class Brain:
         self.fitness = 0.0
         self.age = 0
         self.state = BrainState(activations=np.zeros(self.phenotype.num_nodes))
-        self.history = []  # История состояний для анализа
+        self.history: List[np.ndarray] = []  # История состояний для анализа
 
     def process_input(self, input_data: np.ndarray) -> np.ndarray:
         """
@@ -192,8 +193,10 @@ class Brain:
 
     def clone(self) -> "Brain":
         """Создает копию мозга."""
+        # Создаем новый экземпляр GrowthRules вместо клонирования
+        cloned_growth_rules = GrowthRules()
         cloned_brain = Brain(
-            genome=self.genome.clone(), growth_rules=self.growth_rules.clone()
+            genome=self.genome.clone(), growth_rules=cloned_growth_rules
         )
         cloned_brain.gp = self.gp
         cloned_brain.fitness = self.fitness

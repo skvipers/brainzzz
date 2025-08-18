@@ -4,6 +4,7 @@
 
 import asyncio
 import logging
+from typing import Optional
 
 from core.adapters import redis_adapter
 from core.settings import settings
@@ -81,7 +82,7 @@ async def health_check():
 
 
 @app.get("/api/population")
-async def get_population(limit: int = None):
+async def get_population(limit: Optional[int] = None):
     """Получение популяции (mock данные)."""
     # Если limit не указан, используем глобальный размер популяции
     if limit is None:

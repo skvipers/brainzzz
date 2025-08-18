@@ -43,9 +43,9 @@ class EvolutionEngine:
         self.crossover = Crossover()
 
         # История эволюции
-        self.generation_history = []
-        self.best_fitness_history = []
-        self.avg_fitness_history = []
+        self.generation_history: List[Dict[str, Any]] = []
+        self.best_fitness_history: List[float] = []
+        self.avg_fitness_history: List[float] = []
 
     def evolve_population(self, population: List[Brain]) -> List[Brain]:
         """

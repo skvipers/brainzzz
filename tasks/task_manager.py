@@ -74,7 +74,10 @@ class TaskManager:
         scores = []
         for task in self.tasks:
             try:
-                score = task.evaluate(brain)
+                # Генерируем тестовые данные для задачи
+                test_data = task.generate_test_data(num_samples=10)
+                # Оцениваем решение
+                score = task.evaluate_solution(brain, test_data)
                 scores.append(score)
             except Exception as e:
                 logger.error(f"Ошибка оценки задачи {task.name}: {e}")
