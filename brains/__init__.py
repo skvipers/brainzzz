@@ -13,4 +13,4 @@ from .genome import Genome
 from .phenotype import Phenotype
 from .growth_rules import GrowthRules
 
-__all__ = ['Brain', 'Genome', 'Phenotype', 'GrowthRules'] 
+__all__ = ["Brain", "Genome", "Phenotype", "GrowthRules"]

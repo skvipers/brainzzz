@@ -13,4 +13,4 @@ from .base_task import BaseTask
 from .xor_task import XORTask
 from .sequence_task import SequenceTask
 
-__all__ = ['TaskManager', 'BaseTask', 'XORTask', 'SequenceTask'] 
+__all__ = ["TaskManager", "BaseTask", "XORTask", "SequenceTask"]

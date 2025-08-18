@@ -13,4 +13,4 @@ from .selection import Selection
 from .mutation import Mutation
 from .crossover import Crossover
 
-__all__ = ['EvolutionEngine', 'Selection', 'Mutation', 'Crossover'] 
+__all__ = ["EvolutionEngine", "Selection", "Mutation", "Crossover"]

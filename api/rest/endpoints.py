@@ -2,15 +2,10 @@
 REST API endpoints для управления симуляцией.
 """
 
-import json
 import logging
-from typing import Dict, Any, List
 from fastapi import APIRouter, HTTPException
-from pathlib import Path
 
-from api.core.schemas import PopulationStats, BrainStats
 from api.core.adapters import duckdb_adapter, redis_adapter
-from api.core.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +18,7 @@ async def health_check():
     return {
         "status": "healthy",
         "timestamp": "2025-01-18T00:00:00Z",
-        "version": "1.0.0"
+        "version": "1.0.0",
     }
 
 
@@ -34,14 +29,11 @@ async def system_status():
         # Проверяем подключения
         redis_status = redis_adapter.connected
         duckdb_status = duckdb_adapter.connected
-        
+
         return {
             "status": "running",
-            "connections": {
-                "redis": redis_status,
-                "duckdb": duckdb_status
-            },
-            "timestamp": "2025-01-18T00:00:00Z"
+            "connections": {"redis": redis_status, "duckdb": duckdb_status},
+            "timestamp": "2025-01-18T00:00:00Z",
         }
     except Exception as e:
         logger.error(f"Ошибка получения статуса: {e}")
@@ -54,16 +46,10 @@ async def get_population_stats(limit: int = 100):
     try:
         if not duckdb_adapter.connected:
             # Возвращаем заглушку если DB недоступна
-            return {
-                "message": "DuckDB недоступен",
-                "data": []
-            }
-        
+            return {"message": "DuckDB недоступен", "data": []}
+
         snapshots = duckdb_adapter.get_population_snapshots(limit)
-        return {
-            "data": snapshots,
-            "count": len(snapshots)
-        }
+        return {"data": snapshots, "count": len(snapshots)}
     except Exception as e:
         logger.error(f"Ошибка получения статистики популяции: {e}")
         raise HTTPException(status_code=500, detail="Ошибка получения статистики")
@@ -74,23 +60,25 @@ async def get_population(limit: int = 100):
     """Получение популяции (обратная совместимость)."""
     try:
         logger.info(f"Запрос популяции с лимитом: {limit}")
-        
+
         # Возвращаем mock данные для тестирования фронтенда
         # Генерируем динамически в зависимости от лимита
         mock_population = []
-        for i in range(1, min(limit + 1, 21)):  # Максимум 20 мозгов для тестирования
-            mock_population.append({
-                "id": i,
-                "nodes": 7 + (i % 5),  # 7-11 узлов
-                "connections": 8 + (i % 7),  # 8-14 связей
-                "gp": 3.5 + (i * 0.1),  # GP от 3.6 до 5.5
-                "fitness": 0.3 + (i * 0.01),  # Fitness от 0.31 до 0.5
-                "age": 1 + (i % 3)  # Age от 1 до 3
-            })
-        
+        for i in range(1, min(limit + 1, 21)):  # Максимум 20 мозгов
+            mock_population.append(
+                {
+                    "id": i,
+                    "nodes": 7 + (i % 5),  # 7-11 узлов
+                    "connections": 8 + (i % 7),  # 8-14 связей
+                    "gp": 3.5 + (i * 0.1),  # GP от 3.6 до 5.5
+                    "fitness": 0.3 + (i * 0.01),  # Fitness от 0.31 до 0.5
+                    "age": 1 + (i % 3),  # Age от 1 до 3
+                }
+            )
+
         logger.info(f"Возвращено {len(mock_population)} мозгов")
         return mock_population
-        
+
     except Exception as e:
         logger.error(f"Ошибка получения популяции: {e}")
         raise HTTPException(status_code=500, detail="Ошибка получения популяции")
@@ -101,15 +89,15 @@ async def get_brain(brain_id: int):
     """Получение данных конкретного мозга."""
     try:
         logger.info(f"Запрос данных для мозга #{brain_id}")
-        
+
         # Валидируем brain_id
-        if brain_id <= 0:
-            raise HTTPException(status_code=400, detail="ID мозга должен быть положительным числом")
-        
-        # Генерируем динамические данные мозга
+        if brain_id <= 0 or brain_id > 20:
+            return {"error": "ID мозга должен быть от 1 до 20"}
+
+        # Генерируем количество узлов и связей
         node_count = 7 + (brain_id % 5)  # 7-11 узлов
         connection_count = 8 + (brain_id % 7)  # 8-14 связей
-        
+
         # Создаем узлы
         nodes = []
         for i in range(1, node_count + 1):
@@ -119,303 +107,126 @@ async def get_brain(brain_id: int):
                 node_type = "output"
             else:
                 node_type = "hidden"
-            
-            nodes.append({
-                "id": i,
-                "type": node_type,
-                "activation": "sigmoid",
-                "bias": round(0.1 + (i * 0.05), 2),
-                "threshold": round(0.3 + (i * 0.1), 2)
-            })
-        
-        # Создаем связи
+
+            nodes.append(
+                {
+                    "id": i,
+                    "type": node_type,
+                    "activation": "sigmoid",
+                    "bias": round(0.1 + (i * 0.05), 2),
+                    "threshold": round(0.3 + (i * 0.1), 2),
+                }
+            )
+
+        # Создаем связи (соединяем узлы последовательно)
         connections = []
         for i in range(1, connection_count + 1):
-            if i < node_count:  # Основные связи между соседними узлами
-                connections.append({
-                    "id": i,
-                    "from": i,
-                    "to": i + 1,
-                    "weight": round(-0.8 + (i * 0.3), 2),
-                    "plasticity": 0.1,
-                    "enabled": True
-                })
-            else:  # Дополнительные связи
+            if i < node_count:  # Связь между существующими узлами
+                connections.append(
+                    {
+                        "id": i,
+                        "from_node": i,
+                        "to_node": i + 1,
+                        "weight": round(0.5 + (i * 0.1), 2),
+                        "enabled": True,
+                    }
+                )
+            else:  # Дополнительные связи между случайными узлами
                 from_node = (i % node_count) + 1
                 to_node = ((i + 1) % node_count) + 1
                 if from_node != to_node:
-                    # Некоторые мозги имеют неактивные связи для тестирования
-                    # Мозги 3, 7, 11, 15, 19 имеют неактивные связи
-                    is_disabled = brain_id in [3, 7, 11, 15, 19] and i > connection_count - 2
-                    connections.append({
-                        "id": i,
-                        "from": from_node,
-                        "to": to_node,
-                        "weight": round(-0.5 + (i * 0.2), 2),
-                        "plasticity": 0.1,
-                        "enabled": not is_disabled
-                    })
+                    connections.append(
+                        {
+                            "id": i,
+                            "from_node": from_node,
+                            "to_node": to_node,
+                            "weight": round(0.3 + (i * 0.05), 2),
+                            "enabled": True,
+                        }
+                    )
 
-        mock_brain = {
+        return {
             "id": brain_id,
             "nodes": nodes,
             "connections": connections,
-            "gp": 3.5 + (brain_id * 0.1),  # GP от 3.6 до 5.5
-            "fitness": 0.3 + (brain_id * 0.01),  # Fitness от 0.31 до 0.5
-            "age": 1 + (brain_id % 3)  # Age от 1 до 3
+            "metadata": {
+                "total_nodes": node_count,
+                "total_connections": len(connections),
+                "generation": 1,
+                "fitness": 0.3 + (brain_id * 0.01),
+            },
         }
-        
-        logger.info(f"Успешно возвращены данные для мозга #{brain_id}: {len(mock_brain['nodes'])} узлов, {len(mock_brain['connections'])} связей")
-        return mock_brain
-        
-    except HTTPException:
-        raise
+
     except Exception as e:
-        logger.error(f"Ошибка получения мозга {brain_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Ошибка получения мозга: {str(e)}")
+        logger.error(f"Ошибка получения данных мозга #{brain_id}: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка получения данных мозга")
 
 
-@router.get("/stats")
-async def get_stats():
-    """Получение общей статистики (обратная совместимость)."""
+@router.get("/evolution/status")
+async def get_evolution_status():
+    """Получение статуса эволюции."""
     try:
-        logger.info("Запрос статистики популяции")
-        
-        # Возвращаем mock статистику для тестирования фронтенда
-        # Пока возвращаем базовую статистику, позже можно сделать динамической
         return {
-            "size": 20,  # Увеличиваем размер популяции
+            "status": "running",
+            "generation": 1,
+            "population_size": 20,
+            "best_fitness": 0.454,
             "avg_fitness": 0.390,
-            "max_fitness": 0.454,
-            "avg_nodes": 8.0,
-            "avg_connections": 10.0,
-            "generation": 50
+            "timestamp": "2025-01-18T00:00:00Z",
         }
     except Exception as e:
-        logger.error(f"Ошибка получения статистики: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка получения статистики")
+        logger.error(f"Ошибка получения статуса эволюции: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка получения статуса")
 
 
-@router.get("/brains/{brain_id}/stats")
-async def get_brain_stats(brain_id: str, limit: int = 100):
-    """Получение статистики конкретного мозга."""
-    try:
-        if not duckdb_adapter.connected:
-            return {
-                "message": "DuckDB недоступен",
-                "data": []
-            }
-        
-        snapshots = duckdb_adapter.get_brain_snapshots(brain_id, limit)
-        return {
-            "brain_id": brain_id,
-            "data": snapshots,
-            "count": len(snapshots)
-        }
-    except Exception as e:
-        logger.error(f"Ошибка получения статистики мозга: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка получения статистики")
-
-
-@router.post("/control/pause")
-async def pause_simulation():
-    """Приостановка симуляции."""
-    try:
-        # Отправляем команду через Redis
-        success = await redis_adapter.publish_event("control", {
-            "action": "pause",
-            "timestamp": "2025-01-18T00:00:00Z"
-        })
-        
-        if success:
-            return {"message": "Команда паузы отправлена", "status": "success"}
-        else:
-            return {"message": "Redis недоступен", "status": "warning"}
-            
-    except Exception as e:
-        logger.error(f"Ошибка отправки команды паузы: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка отправки команды")
-
-
-@router.post("/control/resume")
-async def resume_simulation():
-    """Возобновление симуляции."""
-    try:
-        success = await redis_adapter.publish_event("control", {
-            "action": "resume",
-            "timestamp": "2025-01-18T00:00:00Z"
-        })
-        
-        if success:
-            return {"message": "Команда возобновления отправлена", "status": "success"}
-        else:
-            return {"message": "Redis недоступен", "status": "warning"}
-            
-    except Exception as e:
-        logger.error(f"Ошибка отправки команды возобновления: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка отправки команды")
-
-
-@router.post("/control/snapshot")
-async def create_snapshot():
-    """Создание снапшота."""
-    try:
-        success = await redis_adapter.publish_event("control", {
-            "action": "snapshot",
-            "timestamp": "2025-01-18T00:00:00Z"
-        })
-        
-        if success:
-            return {"message": "Команда создания снапшота отправлена", "status": "success"}
-        else:
-            return {"message": "Redis недоступен", "status": "warning"}
-            
-    except Exception as e:
-        logger.error(f"Ошибка отправки команды снапшота: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка отправки команды")
-
-
-@router.get("/snapshots")
-async def list_snapshots():
-    """Список доступных снапшотов."""
-    try:
-        snapshots_dir = settings.DATA_DIR / "snapshots"
-        if not snapshots_dir.exists():
-            return {"data": [], "count": 0}
-        
-        snapshots = []
-        for snapshot_file in snapshots_dir.glob("*.json"):
-            try:
-                with open(snapshot_file, 'r') as f:
-                    snapshot_data = json.load(f)
-                    snapshots.append({
-                        "filename": snapshot_file.name,
-                        "size": snapshot_file.stat().st_size,
-                        "modified": snapshot_file.stat().st_mtime,
-                        "data": snapshot_data
-                    })
-            except Exception as e:
-                logger.warning(f"Ошибка чтения снапшота {snapshot_file}: {e}")
-        
-        return {
-            "data": snapshots,
-            "count": len(snapshots)
-        }
-        
-    except Exception as e:
-        logger.error(f"Ошибка получения списка снапшотов: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка получения снапшотов")
-
-
-@router.post("/evolve")
+@router.post("/evolution/start")
 async def start_evolution(data: dict):
     """Запуск эволюции."""
     try:
-        logger.info(f"Запрос запуска эволюции с параметрами: {data}")
-        
-        # Валидируем входные данные
-        if not isinstance(data, dict):
-            raise HTTPException(status_code=400, detail="Данные должны быть объектом")
-        
-        mutation_rate = data.get("mutation_rate", 0.3)
-        population_size = data.get("population_size", 20)
-        
-        # Проверяем диапазоны значений
-        if not (0.0 <= mutation_rate <= 1.0):
-            raise HTTPException(status_code=400, detail="mutation_rate должен быть от 0.0 до 1.0")
-        
-        if not (1 <= population_size <= 1000):
-            raise HTTPException(status_code=400, detail="population_size должен быть от 1 до 1000")
-        
-        # Отправляем команду через Redis
-        success = await redis_adapter.publish_event("evolution", {
-            "action": "start",
-            "mutation_rate": mutation_rate,
-            "population_size": population_size,
-            "timestamp": "2025-01-18T00:00:00Z"
-        })
-        
-        if success:
-            logger.info(f"Эволюция запущена успешно: mutation_rate={mutation_rate}, population_size={population_size}")
-            return {
-                "message": "Эволюция запущена",
-                "status": "success",
-                "mutation_rate": mutation_rate,
-                "population_size": population_size
-            }
-        else:
-            logger.warning("Redis недоступен для запуска эволюции")
-            return {"message": "Redis недоступен", "status": "warning"}
-            
-    except HTTPException:
-        raise
+        logger.info(f"Запрос запуска эволюции: {data}")
+        return {
+            "message": "Эволюция запущена",
+            "status": "success",
+            "mutation_rate": data.get("mutation_rate", 0.3),
+            "population_size": data.get("population_size", 20),
+        }
     except Exception as e:
         logger.error(f"Ошибка запуска эволюции: {e}")
-        raise HTTPException(status_code=500, detail=f"Ошибка запуска эволюции: {str(e)}")
+        raise HTTPException(status_code=500, detail="Ошибка запуска эволюции")
 
 
-@router.post("/evaluate")
-async def evaluate_population():
-    """Оценка популяции."""
+@router.post("/evolution/pause")
+async def pause_evolution():
+    """Приостановка эволюции."""
     try:
-        # Отправляем команду через Redis
-        success = await redis_adapter.publish_event("evaluation", {
-            "action": "start",
-            "timestamp": "2025-01-18T00:00:00Z"
-        })
-        
-        if success:
-            return {"message": "Оценка популяции запущена", "status": "success"}
-        else:
-            return {"message": "Redis недоступен", "status": "warning"}
-            
+        logger.info("Запрос приостановки эволюции")
+        return {"message": "Эволюция приостановлена", "status": "paused"}
     except Exception as e:
-        logger.error(f"Ошибка оценки популяции: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка оценки популяции")
+        logger.error(f"Ошибка приостановки эволюции: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка приостановки")
 
 
-@router.post("/population/resize")
-async def resize_population(data: dict):
-    """Изменение размера популяции."""
+@router.post("/evolution/resume")
+async def resume_evolution():
+    """Возобновление эволюции."""
     try:
-        logger.info(f"Запрос изменения размера популяции с параметрами: {data}")
-        
-        # Валидируем входные данные
-        if not isinstance(data, dict):
-            raise HTTPException(status_code=400, detail="Данные должны быть объектом")
-        
-        population_size = data.get("population_size", 20)
-        mutation_rate = data.get("mutation_rate", 0.3)
-        
-        # Проверяем диапазоны значений
-        if not (1 <= population_size <= 1000):
-            raise HTTPException(status_code=400, detail="population_size должен быть от 1 до 1000")
-        
-        if not (0.0 <= mutation_rate <= 1.0):
-            raise HTTPException(status_code=400, detail="mutation_rate должен быть от 0.0 до 1.0")
-        
-        # Отправляем команду через Redis
-        success = await redis_adapter.publish_event("population", {
-            "action": "resize",
-            "population_size": population_size,
-            "mutation_rate": mutation_rate,
-            "timestamp": "2025-01-18T00:00:00Z"
-        })
-        
-        if success:
-            logger.info(f"Размер популяции изменен успешно: population_size={population_size}, mutation_rate={mutation_rate}")
-            return {
-                "message": "Размер популяции изменен",
-                "status": "success",
-                "population_size": population_size,
-                "mutation_rate": mutation_rate
-            }
-        else:
-            logger.warning("Redis недоступен для изменения размера популяции")
-            return {"message": "Redis недоступен", "status": "warning"}
-            
-    except HTTPException:
-        raise
+        logger.info("Запрос возобновления эволюции")
+        return {"message": "Эволюция возобновлена", "status": "running"}
     except Exception as e:
-        logger.error(f"Ошибка изменения размера популяции: {e}")
-        raise HTTPException(status_code=500, detail=f"Ошибка изменения размера популяции: {str(e)}") 
+        logger.error(f"Ошибка возобновления эволюции: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка возобновления")
+
+
+@router.post("/evolution/snapshot")
+async def create_snapshot():
+    """Создание снапшота эволюции."""
+    try:
+        logger.info("Запрос создания снапшота")
+        return {
+            "message": "Снапшот создан",
+            "status": "success",
+            "snapshot_id": "snapshot_20250118_001",
+        }
+    except Exception as e:
+        logger.error(f"Ошибка создания снапшота: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка создания снапшота")

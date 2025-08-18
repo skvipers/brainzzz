@@ -18,4 +18,4 @@ LOGS_DIR.mkdir(exist_ok=True)
 WS_URL = os.getenv("WS_URL", "ws://localhost:8000/ws")
 
 # API URL
-API_URL = os.getenv("API_URL", "http://localhost:8000") 
+API_URL = os.getenv("API_URL", "http://localhost:8000")

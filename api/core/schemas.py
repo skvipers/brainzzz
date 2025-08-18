@@ -10,6 +10,7 @@ from enum import Enum
 
 class MessageType(str, Enum):
     """Типы WebSocket сообщений."""
+
     POPULATION_UPDATE = "population_update"
     BRAIN_UPDATE = "brain_update"
     TASK_UPDATE = "task_update"
@@ -20,6 +21,7 @@ class MessageType(str, Enum):
 
 class BrainStats(BaseModel):
     """Статистика мозга."""
+
     id: str
     fitness: float
     nodes: int
@@ -30,6 +32,7 @@ class BrainStats(BaseModel):
 
 class PopulationStats(BaseModel):
     """Статистика популяции."""
+
     size: int
     avg_fitness: float
     max_fitness: float
@@ -42,6 +45,7 @@ class PopulationStats(BaseModel):
 
 class TaskResult(BaseModel):
     """Результат выполнения задачи."""
+
     task_id: str
     task_name: str
     brain_id: str
@@ -52,6 +56,7 @@ class TaskResult(BaseModel):
 
 class WebSocketMessage(BaseModel):
     """Базовое WebSocket сообщение."""
+
     type: MessageType
     schema_version: str = "1.0.0"  # Версия схемы
     ts: datetime = Field(default_factory=datetime.now)
@@ -60,35 +65,41 @@ class WebSocketMessage(BaseModel):
 
 class PopulationUpdateMessage(WebSocketMessage):
     """Обновление популяции."""
+
     type: MessageType = MessageType.POPULATION_UPDATE
     data: PopulationStats
 
 
 class BrainUpdateMessage(WebSocketMessage):
     """Обновление мозга."""
+
     type: MessageType = MessageType.BRAIN_UPDATE
     data: BrainStats
 
 
 class TaskUpdateMessage(WebSocketMessage):
     """Обновление задачи."""
+
     type: MessageType = MessageType.TASK_UPDATE
     data: TaskResult
 
 
 class EvolutionStepMessage(WebSocketMessage):
     """Шаг эволюции."""
+
     type: MessageType = MessageType.EVOLUTION_STEP
     data: Dict[str, Any]
 
 
 class SystemStatusMessage(WebSocketMessage):
     """Статус системы."""
+
     type: MessageType = MessageType.SYSTEM_STATUS
     data: Dict[str, Any]
 
 
 class ErrorMessage(WebSocketMessage):
     """Сообщение об ошибке."""
+
     type: MessageType = MessageType.ERROR
-    data: Dict[str, Any] 
+    data: Dict[str, Any]
