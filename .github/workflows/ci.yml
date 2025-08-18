@@ -28,7 +28,7 @@ jobs:
           flake8 brains/ evo/ tasks/ api/ --max-line-length=88 --extend-ignore=E203
           black --check brains/ evo/ tasks/ api/
           isort --check-only brains/ evo/ tasks/ api/
-          mypy brains/ evo/ tasks/ api/ --ignore-missing-imports
+          mypy brains/ evo/ tasks/ api/ --ignore-missing-imports --no-error-summary
 
   test-backend:
     runs-on: ubuntu-latest
