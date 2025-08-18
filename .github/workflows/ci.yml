@@ -21,7 +21,7 @@ jobs:
       - name: Install linting tools
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 black isort mypy
+          pip install flake8 black isort mypy types-redis
 
       - name: Run linting
         run: |
@@ -103,7 +103,7 @@ jobs:
       - name: Run security checks
         run: |
           bandit -r brains/ evo/ tasks/ api/ -f json -o bandit-report.json
-          safety scan --full-report --output json --save-as json safety-report.json --no-interactive
+          safety scan --full-report --no-interactive
 
       - name: Upload security reports
         uses: actions/upload-artifact@v4
