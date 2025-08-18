@@ -19,11 +19,22 @@ interface PopulationStats {
   generation: number
 }
 
+interface WebSocketMessage {
+  type: string
+  schema_version: string
+  ts: string
+  data: any
+}
+
 interface BrainStore {
   population: Brain[]
   stats: PopulationStats
   loading: boolean
   error: string | null
+  
+  // WebSocket состояние
+  wsConnected: boolean
+  lastEvent: WebSocketMessage | null
   
   // Actions
   fetchPopulation: () => Promise<void>
@@ -31,6 +42,10 @@ interface BrainStore {
   startEvolution: (mutationRate: number, populationSize?: number) => Promise<void>
   evaluatePopulation: () => Promise<void>
   resetError: () => void
+  
+  // WebSocket actions
+  setWebSocketConnected: (connected: boolean) => void
+  handleWebSocketMessage: (message: WebSocketMessage) => void
 }
 
 const API_BASE = '/api'
@@ -47,6 +62,10 @@ export const useBrainStore = create<BrainStore>((set, get) => ({
   },
   loading: false,
   error: null,
+  
+  // WebSocket состояние
+  wsConnected: false,
+  lastEvent: null,
   
   fetchPopulation: async () => {
     try {
@@ -141,4 +160,42 @@ export const useBrainStore = create<BrainStore>((set, get) => ({
   },
   
   resetError: () => set({ error: null }),
+  
+  // WebSocket actions
+  setWebSocketConnected: (connected: boolean) => {
+    console.log(`🔌 WebSocket ${connected ? 'подключен' : 'отключен'}`)
+    set({ wsConnected: connected })
+  },
+  
+  handleWebSocketMessage: (message: WebSocketMessage) => {
+    console.log('📨 WebSocket сообщение обрабатывается:', message)
+    set({ lastEvent: message })
+    
+    // Обрабатываем разные типы сообщений
+    switch (message.type) {
+      case 'population_update':
+        console.log('🔄 Обновление популяции через WebSocket')
+        // Автоматически обновляем данные
+        get().fetchPopulation()
+        break
+        
+      case 'brain_update':
+        console.log('🧠 Обновление мозга через WebSocket')
+        // Можно обновить конкретный мозг
+        break
+        
+      case 'evolution_step':
+        console.log('🔄 Шаг эволюции через WebSocket')
+        // Обновляем статистику
+        get().fetchStats()
+        break
+        
+      case 'system_status':
+        console.log('📊 Статус системы через WebSocket:', message.data)
+        break
+        
+      default:
+        console.log('❓ Неизвестный тип WebSocket сообщения:', message.type)
+    }
+  },
 })) 

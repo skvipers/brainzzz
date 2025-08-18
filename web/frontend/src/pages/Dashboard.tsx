@@ -1,21 +1,18 @@
 import React, { useEffect } from 'react'
-import { Brain, Users, TrendingUp, Target, Activity, Zap } from 'lucide-react'
+import { Brain, Users, TrendingUp, Target, Activity, Zap, Wifi, WifiOff } from 'lucide-react'
 import { useBrainStore } from '../stores/brainStore'
+import { useWebSocketContext } from '../components/WebSocketProvider'
 
 const Dashboard = () => {
-  const { population, stats, loading, fetchPopulation, fetchStats, startEvolution, evaluatePopulation } = useBrainStore()
+  const { population, stats, loading, fetchPopulation, fetchStats, startEvolution, evaluatePopulation, wsConnected } = useBrainStore()
+  const { isConnected } = useWebSocketContext()
 
   useEffect(() => {
+    // Загружаем начальные данные
     fetchPopulation()
     fetchStats()
     
-    // Обновляем данные каждые 10 секунд для отображения актуальной информации
-    const interval = setInterval(() => {
-      fetchPopulation()
-      fetchStats()
-    }, 10000)
-    
-    return () => clearInterval(interval)
+    // Убираем автоматическое обновление - теперь данные обновляются через WebSocket
   }, [fetchPopulation, fetchStats])
   
   const handleStartEvolution = async () => {
@@ -85,7 +82,6 @@ const Dashboard = () => {
       change: '-2%',
       changeType: 'negative' as const,
     },
-
   ]
   
   const recentActivity = [
@@ -100,24 +96,29 @@ const Dashboard = () => {
       <div className="mb-8 flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Дашборд</h1>
-          <p className="text-gray-600">Обзор состояния инкубатора мозгов</p>
+          <p className="text-gray-600">Обзор состояния популяции и эволюции</p>
         </div>
-        <button
-          onClick={async () => {
-            await fetchPopulation()
-            await fetchStats()
-          }}
-          className="btn-secondary flex items-center space-x-2 px-4 py-2"
-          title="Обновить данные"
-          disabled={loading}
-        >
-          {loading ? (
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-          ) : (
-            <TrendingUp className="h-4 w-4" />
-          )}
-          <span>{loading ? 'Обновление...' : 'Обновить'}</span>
-        </button>
+        
+        {/* WebSocket статус */}
+        <div className="flex items-center space-x-2">
+          <div className={`flex items-center space-x-2 px-3 py-2 rounded-lg ${
+            isConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+          }`}>
+            {isConnected ? (
+              <>
+                <Wifi className="w-4 h-4" />
+                <span className="text-sm font-medium">WebSocket подключен</span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="w-4 h-4" />
+                <span className="text-sm font-medium">WebSocket отключен</span>
+              </>
+            )}
+          </div>
+          
+          {/* Убрали блок "Последнее событие" для чистоты интерфейса */}
+        </div>
       </div>
       
       {/* Metrics Grid */}

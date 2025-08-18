@@ -3,8 +3,12 @@
 """
 
 import logging
-from fastapi import FastAPI
+import asyncio
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from ws.hub import WebSocketHub
+from core.adapters import redis_adapter
+from core.settings import settings
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -20,11 +24,35 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# WebSocket хаб
+websocket_hub = WebSocketHub()
+
+# Startup и shutdown события
+@app.on_event("startup")
+async def startup_event():
+    """Событие запуска приложения."""
+    logger.info("🚀 Brainzzz API запускается...")
+    logger.info(f"WebSocket лимит соединений: {websocket_hub.max_connections}")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Событие остановки приложения."""
+    logger.info("🛑 Brainzzz API останавливается...")
+    await websocket_hub.stop_redis_listener()
+    # Принудительно закрываем все WebSocket соединения
+    for websocket in list(websocket_hub.active_connections):
+        try:
+            await websocket.close(code=1001, reason="Server shutdown")
+        except:
+            pass
+    websocket_hub.active_connections.clear()
+    logger.info("WebSocket соединения закрыты")
 
 # Глобальная переменная для размера популяции
 POPULATION_SIZE = 20
@@ -83,6 +111,83 @@ async def get_stats():
         "avg_nodes": 8.0,
         "avg_connections": 10.0,
         "generation": 1
+    }
+
+@app.get("/api/ws/stats")
+async def get_websocket_stats():
+    """Получение статистики WebSocket соединений."""
+    return websocket_hub.get_connection_stats()
+
+@app.get("/api/ws/status")
+async def get_websocket_status():
+    """Проверка статуса WebSocket сервера."""
+    return {
+        "status": "available",
+        "max_connections": websocket_hub.max_connections,
+        "active_connections": len(websocket_hub.active_connections),
+        "available_connections": websocket_hub.max_connections - len(websocket_hub.active_connections),
+        "can_accept": len(websocket_hub.active_connections) < websocket_hub.max_connections
+    }
+
+@app.get("/api/ws/test")
+async def test_websocket_connection():
+    """Тестирование WebSocket соединения."""
+    import asyncio
+    import websockets
+    
+    try:
+        # Пытаемся подключиться к WebSocket серверу
+        uri = "ws://localhost:8000/ws"
+        async with websockets.connect(uri) as websocket:
+            # Отправляем тестовое сообщение
+            await websocket.send("test")
+            # Получаем ответ
+            response = await websocket.recv()
+            await websocket.close()
+            
+            return {
+                "status": "success",
+                "message": "WebSocket соединение работает",
+                "response": response
+            }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"WebSocket ошибка: {str(e)}",
+            "error_type": type(e).__name__
+        }
+
+@app.post("/api/ws/cleanup")
+async def cleanup_websocket_connections():
+    """Очистка мертвых WebSocket соединений."""
+    await websocket_hub.cleanup_dead_connections()
+    return {
+        "status": "success",
+        "message": "Очистка завершена",
+        "stats": websocket_hub.get_connection_stats()
+    }
+
+@app.post("/api/ws/reset")
+async def reset_all_websocket_connections():
+    """Принудительный сброс всех WebSocket соединений."""
+    logger.warning("🔄 Принудительный сброс всех WebSocket соединений")
+    
+    # Закрываем все активные соединения
+    connections_to_close = list(websocket_hub.active_connections)
+    for websocket in connections_to_close:
+        try:
+            await websocket.close(code=1001, reason="Server reset")
+        except Exception as e:
+            logger.error(f"Ошибка закрытия WebSocket: {e}")
+    
+    # Очищаем список соединений
+    websocket_hub.active_connections.clear()
+    
+    logger.info(f"✅ Сброшено {len(connections_to_close)} WebSocket соединений")
+    return {
+        "status": "success",
+        "message": f"Сброшено {len(connections_to_close)} соединений",
+        "stats": websocket_hub.get_connection_stats()
     }
 
 @app.post("/api/evolve")
@@ -174,6 +279,111 @@ async def get_brain(brain_id: int):
     
     logger.info(f"Успешно возвращены данные для мозга #{brain_id}: {len(mock_brain['nodes'])} узлов, {len(mock_brain['connections'])} связей")
     return mock_brain
+
+@app.post("/api/test-redis")
+async def test_redis_event():
+    """Тестовый endpoint для публикации события в Redis."""
+    try:
+        # Подключаемся к Redis
+        await redis_adapter.connect()
+        
+        # Публикуем тестовое событие
+        success = await redis_adapter.publish_event(
+            "test_event",
+            {
+                "message": "Тестовое событие из API",
+                "timestamp": "2025-01-18T00:00:00Z",
+                "data": {"test": True, "value": 42}
+            }
+        )
+        
+        if success:
+            return {
+                "status": "success",
+                "message": "Событие опубликовано в Redis",
+                "channel": "brainzzz.events"
+            }
+        else:
+            return {
+                "status": "error",
+                "message": "Не удалось опубликовать событие"
+            }
+            
+    except Exception as e:
+        logger.error(f"Ошибка тестирования Redis: {e}")
+        return {
+            "status": "error",
+            "message": f"Ошибка: {str(e)}"
+        }
+
+# WebSocket endpoint
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    """WebSocket endpoint для real-time обновлений."""
+    client_id = id(websocket)
+    logger.info(f"🔌 Попытка подключения WebSocket #{client_id}")
+    
+    try:
+        # Проверяем лимит соединений перед подключением
+        if len(websocket_hub.active_connections) >= websocket_hub.max_connections:
+            logger.warning(f"❌ Достигнут лимит WebSocket соединений: {websocket_hub.max_connections}")
+            await websocket.close(code=1013, reason="Too many connections")
+            return
+        
+        await websocket_hub.connect(websocket)
+        logger.info(f"✅ WebSocket #{client_id} успешно подключен")
+        
+        # Проверяем, что соединение действительно установлено
+        if websocket not in websocket_hub.active_connections:
+            logger.warning(f"⚠️ WebSocket #{client_id} не добавлен в активные соединения")
+            return
+        
+        # Отправляем ping каждые 30 секунд для проверки соединения
+        import asyncio
+        ping_task = asyncio.create_task(ping_websocket(websocket, client_id))
+        
+        try:
+            while True:
+                # Держим соединение открытым
+                data = await websocket.receive_text()
+                logger.debug(f"📨 Получено сообщение от WebSocket #{client_id}: {data}")
+                
+        except WebSocketDisconnect:
+            logger.info(f"🔌 WebSocket #{client_id} клиент отключился")
+        except Exception as e:
+            logger.error(f"❌ Ошибка WebSocket #{client_id}: {e}")
+        finally:
+            # Отменяем ping задачу
+            ping_task.cancel()
+            websocket_hub.disconnect(websocket)
+            logger.info(f"🧹 WebSocket #{client_id} очищен")
+            
+    except Exception as e:
+        logger.error(f"❌ Критическая ошибка WebSocket #{client_id}: {e}")
+        websocket_hub.disconnect(websocket)
+        try:
+            await websocket.close(code=1011, reason="Internal error")
+        except:
+            pass
+
+async def ping_websocket(websocket: WebSocket, client_id: int):
+    """Отправка ping сообщений для проверки соединения."""
+    try:
+        while True:
+            await asyncio.sleep(30)  # Ping каждые 30 секунд
+            if websocket in websocket_hub.active_connections:
+                try:
+                    await websocket.send_text('{"type": "ping"}')
+                    logger.debug(f"🏓 Ping отправлен WebSocket #{client_id}")
+                except Exception as e:
+                    logger.warning(f"⚠️ Не удалось отправить ping WebSocket #{client_id}: {e}")
+                    break
+            else:
+                break
+    except asyncio.CancelledError:
+        logger.debug(f"🏓 Ping задача отменена для WebSocket #{client_id}")
+    except Exception as e:
+        logger.error(f"❌ Ошибка ping WebSocket #{client_id}: {e}")
 
 if __name__ == "__main__":
     import uvicorn

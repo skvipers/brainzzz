@@ -24,10 +24,12 @@ class Settings(BaseSettings):
     # WebSocket
     ws_ping_interval: int = 20
     ws_ping_timeout: int = 20
+    ws_max_connections: int = 100   # Нормальное значение для продакшена
+    ws_connection_timeout: int = 30
     
     # API
     api_host: str = "0.0.0.0"
-    api_port: int = 8000
+    api_port: int = 8000  # Стандартный порт для API
     api_debug: bool = False
     
     # CORS

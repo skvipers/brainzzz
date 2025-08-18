@@ -9,8 +9,9 @@ from typing import Dict, Set, Any
 from fastapi import WebSocket, WebSocketDisconnect
 from datetime import datetime
 
-from api.core.schemas import WebSocketMessage, MessageType
-from api.core.adapters import redis_adapter
+from core.schemas import WebSocketMessage, MessageType
+from core.adapters import redis_adapter
+from core.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -18,32 +19,58 @@ logger = logging.getLogger(__name__)
 class WebSocketHub:
     """Хаб для управления WebSocket соединениями."""
     
-    def __init__(self):
+    def __init__(self, max_connections: int = None):
         self.active_connections: Set[WebSocket] = set()
         self.redis_callback_task = None
+        self.max_connections = max_connections or settings.ws_max_connections
     
     async def connect(self, websocket: WebSocket):
         """Подключение нового WebSocket клиента."""
-        await websocket.accept()
-        self.active_connections.add(websocket)
-        logger.info(f"WebSocket подключен. Всего: {len(self.active_connections)}")
+        client_id = id(websocket)
         
-        # Отправляем приветственное сообщение
-        welcome_msg = WebSocketMessage(
-            type=MessageType.SYSTEM_STATUS,
-            data={
-                "status": "connected",
-                "message": "Добро пожаловать в Brainzzz!",
-                "timestamp": datetime.now().isoformat()
-            }
-        )
-        await self.send_personal_message(websocket, welcome_msg)
+        # Проверяем лимит соединений
+        if len(self.active_connections) >= self.max_connections:
+            logger.warning(f"❌ Достигнут лимит WebSocket соединений: {self.max_connections}")
+            await websocket.close(code=1013, reason="Too many connections")
+            return
+        
+        # Добавляем задержку для предотвращения race conditions
+        await asyncio.sleep(1.0)  # Увеличиваем задержку до 1 секунды
+        
+        try:
+            await websocket.accept()
+            self.active_connections.add(websocket)
+            logger.info(f"✅ WebSocket #{client_id} подключен. Всего: {len(self.active_connections)}")
+            
+            # Отправляем приветственное сообщение
+            welcome_msg = WebSocketMessage(
+                type=MessageType.SYSTEM_STATUS,
+                data={
+                    "status": "connected",
+                    "message": "Добро пожаловать в Brainzzz!",
+                    "timestamp": datetime.now().isoformat()
+                }
+            )
+            await self.send_personal_message(websocket, welcome_msg)
+            logger.info(f"📤 Приветственное сообщение отправлено WebSocket #{client_id}")
+            
+        except Exception as e:
+            logger.error(f"❌ Ошибка подключения WebSocket #{client_id}: {e}")
+            if websocket in self.active_connections:
+                self.active_connections.remove(websocket)
+            try:
+                await websocket.close(code=1011, reason="Internal error")
+            except:
+                pass
     
     def disconnect(self, websocket: WebSocket):
         """Отключение WebSocket клиента."""
+        client_id = id(websocket)
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
-        logger.info(f"WebSocket отключен. Всего: {len(self.active_connections)}")
+            logger.info(f"🔌 WebSocket #{client_id} отключен. Всего: {len(self.active_connections)}")
+        else:
+            logger.debug(f"🔌 WebSocket #{client_id} уже отключен")
     
     async def send_personal_message(self, websocket: WebSocket, message: WebSocketMessage):
         """Отправка личного сообщения клиенту."""
@@ -130,6 +157,33 @@ class WebSocketHub:
             self.redis_callback_task.cancel()
             self.redis_callback_task = None
             logger.info("Redis listener остановлен")
+    
+    async def cleanup_dead_connections(self):
+        """Очистка мертвых WebSocket соединений."""
+        dead_connections = set()
+        
+        for connection in self.active_connections:
+            try:
+                # Проверяем состояние соединения
+                if connection.client_state.value == 3:  # WebSocketState.DISCONNECTED
+                    dead_connections.add(connection)
+            except Exception:
+                dead_connections.add(connection)
+        
+        # Удаляем мертвые соединения
+        for connection in dead_connections:
+            self.disconnect(connection)
+        
+        if dead_connections:
+            logger.info(f"Очищено {len(dead_connections)} мертвых соединений")
+    
+    def get_connection_stats(self):
+        """Получение статистики соединений."""
+        return {
+            "active": len(self.active_connections),
+            "max": self.max_connections,
+            "available": self.max_connections - len(self.active_connections)
+        }
 
 
 # Создаем глобальный экземпляр хаба
