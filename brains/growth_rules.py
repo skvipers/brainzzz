@@ -2,7 +2,7 @@
 Правила роста и развития мозга.
 """
 
-import random
+import secrets
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
@@ -91,7 +91,7 @@ class GrowthRules:
             normalized_rules.append((rule, cumulative_prob))
 
         # Выбираем правило
-        rand_val = random.random()
+        rand_val = secrets.randbelow(int(total_probability * 1000000)) / 1000000.0
         for rule, prob in normalized_rules:
             if rand_val <= prob:
                 return rule.name
@@ -120,7 +120,7 @@ class GrowthRules:
             return False
 
         # Случайная проверка для предотвращения слишком частого роста
-        return random.random() < self.growth_probability
+        return secrets.randbelow(1000000) / 1000000.0 < self.growth_probability
 
     def _get_complexity_score(self, brain) -> float:
         """

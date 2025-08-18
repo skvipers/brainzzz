@@ -2,9 +2,9 @@
 Операторы скрещивания для эволюционного алгоритма.
 """
 
-import random
+import secrets
 
-from brains import Brain
+from brains import Genome
 
 
 class Crossover:
@@ -20,7 +20,7 @@ class Crossover:
     def __init__(self, crossover_type: str = "uniform"):
         self.crossover_type = crossover_type
 
-    def crossover(self, parent1: Brain, parent2: Brain) -> Brain:
+    def crossover(self, parent1: Genome, parent2: Genome) -> Genome:
         """
         Создаёт потомка путём скрещивания двух родителей.
 
@@ -40,7 +40,7 @@ class Crossover:
         else:
             return self._uniform_crossover(parent1, parent2)
 
-    def _uniform_crossover(self, parent1: Brain, parent2: Brain) -> Brain:
+    def _uniform_crossover(self, parent1: Genome, parent2: Genome) -> Genome:
         """Равномерное скрещивание."""
         # Клонируем первого родителя как основу
         offspring = parent1.clone()
@@ -60,7 +60,7 @@ class Crossover:
 
         return offspring
 
-    def _single_point_crossover(self, parent1: Brain, parent2: Brain) -> Brain:
+    def _single_point_crossover(self, parent1: Genome, parent2: Genome) -> Genome:
         """Скрещивание в одной точке."""
         offspring = parent1.clone()
         offspring.genome = self._crossover_genomes(
@@ -72,7 +72,7 @@ class Crossover:
         offspring.phenotype = offspring.phenotype.__class__(offspring.genome)
         return offspring
 
-    def _two_point_crossover(self, parent1: Brain, parent2: Brain) -> Brain:
+    def _two_point_crossover(self, parent1: Genome, parent2: Genome) -> Genome:
         """Скрещивание в двух точках."""
         offspring = parent1.clone()
         offspring.genome = self._crossover_genomes(
@@ -93,7 +93,7 @@ class Crossover:
             # Равномерное скрещивание: каждый ген с вероятностью 0.5
             # берётся от одного из родителей
             for i, node in enumerate(new_genome.node_genes):
-                if random.random() < 0.5:
+                if secrets.randbelow(2) == 0:
                     parent2_node = (
                         genome2.node_genes[i] if i < len(genome2.node_genes) else node
                     )
@@ -102,7 +102,7 @@ class Crossover:
                     node.plasticity = parent2_node.plasticity
 
             for i, conn in enumerate(new_genome.connection_genes):
-                if random.random() < 0.5:
+                if secrets.randbelow(2) == 0:
                     parent2_conn = (
                         genome2.connection_genes[i]
                         if i < len(genome2.connection_genes)
@@ -113,7 +113,7 @@ class Crossover:
 
         elif method == "single_point":
             # Скрещивание в одной точке
-            crossover_point = random.randint(0, len(new_genome.node_genes) // 2)
+            crossover_point = secrets.randbelow(len(new_genome.node_genes) // 2)
 
             # Копируем гены после точки от второго родителя
             for i in range(crossover_point, len(new_genome.node_genes)):
@@ -125,8 +125,8 @@ class Crossover:
 
         elif method == "two_point":
             # Скрещивание в двух точках
-            point1 = random.randint(0, len(new_genome.node_genes) // 3)
-            point2 = random.randint(
+            point1 = secrets.randbelow(len(new_genome.node_genes) // 3)
+            point2 = secrets.randbelow(
                 2 * len(new_genome.node_genes) // 3, len(new_genome.node_genes)
             )
 
@@ -146,13 +146,13 @@ class Crossover:
         new_rules = rules1.clone()
 
         # Скрещиваем параметры
-        if random.random() < 0.5:
+        if secrets.randbelow(2) == 0:
             new_rules.growth_probability = rules2.growth_probability
-        if random.random() < 0.5:
+        if secrets.randbelow(2) == 0:
             new_rules.complexity_penalty = rules2.complexity_penalty
-        if random.random() < 0.5:
+        if secrets.randbelow(2) == 0:
             new_rules.max_nodes = rules2.max_nodes
-        if random.random() < 0.5:
+        if secrets.randbelow(2) == 0:
             new_rules.max_connections = rules2.max_connections
 
         return new_rules

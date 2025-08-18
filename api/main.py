@@ -54,6 +54,7 @@ async def shutdown_event():
         try:
             await websocket.close(code=1001, reason="Server shutdown")
         except Exception:
+            logger.warning("Ошибка при закрытии WebSocket соединения")
             pass
     websocket_hub.active_connections.clear()
     logger.info("WebSocket соединения закрыты")
@@ -391,6 +392,7 @@ async def websocket_endpoint(websocket: WebSocket):
         try:
             await websocket.close(code=1011, reason="Internal error")
         except Exception:
+            logger.warning("Ошибка при закрытии WebSocket соединения")
             pass
 
 
@@ -419,4 +421,4 @@ async def ping_websocket(websocket: WebSocket, client_id: int):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000)

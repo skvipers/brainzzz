@@ -10,14 +10,14 @@ def test_basic_import():
         import tasks
 
         # Если импорт прошел успешно, модули работают
-        assert brains is not None
-        assert evo is not None
-        assert tasks is not None
+        assert brains is not None  # nosec B101 - тесты
+        assert evo is not None  # nosec B101 - тесты
+        assert tasks is not None  # nosec B101 - тесты
     except ImportError as e:
         pytest.skip(f"Module not available: {e}")
 
 
 def test_simple_math():
     """Simple test to ensure pytest works."""
-    assert 2 + 2 == 4
-    assert 3 * 3 == 9
+    assert 2 + 2 == 4  # nosec B101 - тесты
+    assert 3 * 3 == 9  # nosec B101 - тесты

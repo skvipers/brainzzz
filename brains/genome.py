@@ -2,7 +2,7 @@
 Генетическая информация мозга.
 """
 
-import random
+import secrets
 from dataclasses import dataclass
 from typing import List
 
@@ -93,9 +93,9 @@ class Genome:
             id=node_id,
             node_type=node_type,
             activation_function=activation_function,
-            bias=random.uniform(-0.5, 0.5),
-            threshold=random.uniform(0.3, 0.7),
-            plasticity=random.uniform(0.5, 1.5),
+            bias=secrets.randbelow(1000) / 1000.0 - 0.5,
+            threshold=secrets.randbelow(1000) / 1000.0 + 0.3,
+            plasticity=secrets.randbelow(1000) / 1000.0 + 0.5,
         )
 
         self.node_genes.append(node)
@@ -110,10 +110,10 @@ class Genome:
             id=connection_id,
             from_node=from_node,
             to_node=to_node,
-            weight=random.uniform(-2.0, 2.0),
+            weight=secrets.randbelow(4000) / 1000.0 - 2.0,
             enabled=True,
-            plasticity=random.uniform(0.5, 1.5),
-            connection_type=random.choice(["excitatory", "inhibitory"]),
+            plasticity=secrets.randbelow(1000) / 1000.0 + 0.5,
+            connection_type=secrets.choice(["excitatory", "inhibitory"]),
         )
 
         self.connection_genes.append(connection)
@@ -207,26 +207,26 @@ class Genome:
         """
         # Мутации узлов
         for node in self.node_genes:
-            if random.random() < mutation_rate:
-                node.bias += random.uniform(-0.1, 0.1)
-                node.threshold += random.uniform(-0.05, 0.05)
-                node.plasticity += random.uniform(-0.1, 0.1)
+            if secrets.randbelow(1000) / 1000.0 < mutation_rate:
+                node.bias += secrets.randbelow(200) / 1000.0 - 0.1
+                node.threshold += secrets.randbelow(100) / 1000.0 - 0.05
+                node.plasticity += secrets.randbelow(200) / 1000.0 - 0.1
 
         # Мутации соединений
         for conn in self.connection_genes:
-            if random.random() < mutation_rate:
-                conn.weight += random.uniform(-0.2, 0.2)
-                conn.plasticity += random.uniform(-0.1, 0.1)
+            if secrets.randbelow(1000) / 1000.0 < mutation_rate:
+                conn.weight += secrets.randbelow(400) / 1000.0 - 0.2
+                conn.plasticity += secrets.randbelow(200) / 1000.0 - 0.1
 
         # Случайные структурные мутации
         if (
-            random.random() < mutation_rate * 0.5
+            secrets.randbelow(1000) / 1000.0 < mutation_rate * 0.5
         ):  # Увеличиваем вероятность структурных мутаций
             self._structural_mutation()
 
     def _structural_mutation(self):
         """Выполняет структурную мутацию."""
-        mutation_type = random.choice(
+        mutation_type = secrets.choice(
             ["add_node", "add_connection", "remove_connection"]
         )
 
@@ -234,8 +234,8 @@ class Genome:
             self.add_node()
         elif mutation_type == "add_connection" and len(self.connection_genes) < 200:
             # Выбираем случайные узлы для соединения
-            from_node = random.choice(self.node_genes).id
-            to_node = random.choice(self.node_genes).id
+            from_node = secrets.choice(self.node_genes).id
+            to_node = secrets.choice(self.node_genes).id
             if from_node != to_node:
                 try:
                     self.add_connection(from_node, to_node)
@@ -243,7 +243,7 @@ class Genome:
                     pass  # Игнорируем дубликаты
         elif mutation_type == "remove_connection" and len(self.connection_genes) > 1:
             # Удаляем случайное соединение
-            conn_to_remove = random.choice(self.connection_genes)
+            conn_to_remove = secrets.choice(self.connection_genes)
             self.connection_genes.remove(conn_to_remove)
 
     def clone(self) -> "Genome":

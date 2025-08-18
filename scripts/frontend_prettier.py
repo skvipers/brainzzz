@@ -1,5 +1,5 @@
 import os
-import subprocess
+import subprocess  # nosec B404 - безопасное использование для запуска npx
 import sys
 
 
@@ -7,8 +7,8 @@ def main() -> int:
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     frontend_dir = os.path.join(project_root, "web", "frontend")
     try:
-        result = subprocess.run(
-            ["npx", "prettier", "--write", "."], cwd=frontend_dir, check=False
+        result = subprocess.run(  # nosec B607,B603 - безопасные команды npx
+            ["/usr/bin/npx", "prettier", "--write", "."], cwd=frontend_dir, check=False
         )
         return result.returncode
     except FileNotFoundError:

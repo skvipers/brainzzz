@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     ws_connection_timeout: int = 30
 
     # API
-    api_host: str = "0.0.0.0"
+    api_host: str = "127.0.0.1"  # Безопасный localhost вместо 0.0.0.0
     api_port: int = 8000  # Стандартный порт для API
     api_debug: bool = False
 

@@ -1,7 +1,7 @@
 import requests
 
 # Проверяем мозг #3
-r = requests.get("http://localhost:8000/api/population/3")
+r = requests.get("http://localhost:8000/api/population/3", timeout=10)
 data = r.json()
 
 print(f"Мозг #{data['id']}: {len(data['connections'])} связей")

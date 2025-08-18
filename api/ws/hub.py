@@ -67,6 +67,7 @@ class WebSocketHub:
             try:
                 await websocket.close(code=1011, reason="Internal error")
             except Exception:
+                logger.warning("Ошибка при закрытии WebSocket соединения")
                 pass
 
     def disconnect(self, websocket: WebSocket):

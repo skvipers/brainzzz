@@ -15,7 +15,7 @@ def check_brain_connections(
 ) -> Dict:
     """Проверяет связи конкретного мозга."""
     try:
-        response = requests.get(f"{api_url}/api/population/{brain_id}")
+        response = requests.get(f"{api_url}/api/population/{brain_id}", timeout=10)
         if response.status_code == 200:
             data = response.json()
             connections = data.get("connections", [])
@@ -113,7 +113,7 @@ if __name__ == "__main__":
 
     # Проверяем доступность API
     try:
-        response = requests.get("http://localhost:8000/api/health")
+        response = requests.get("http://localhost:8000/api/health", timeout=10)
         if response.status_code == 200:
             print("✅ API доступно")
         else:

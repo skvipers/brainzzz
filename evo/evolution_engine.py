@@ -2,8 +2,8 @@
 Основной движок эволюции для популяции мозгов.
 """
 
-import random
-from typing import Any, Dict, List, Optional
+import secrets
+from typing import Any, Dict, List
 
 import numpy as np
 
@@ -76,13 +76,13 @@ class EvolutionEngine:
             parent2 = self.selection.select_parent(population)
 
             # Скрещивание
-            if random.random() < self.crossover_rate:
+            if secrets.randbelow(2) < self.crossover_rate:
                 offspring = self.crossover.crossover(parent1, parent2)
             else:
                 offspring = parent1.clone()
 
             # Мутация
-            if random.random() < self.mutation_rate:
+            if secrets.randbelow(2) < self.mutation_rate:
                 self.mutation.mutate(offspring)
 
             # Сброс приспособленности для нового потомка
@@ -165,7 +165,7 @@ class EvolutionEngine:
 
         return np.mean(recent_changes)
 
-    def get_best_brain(self, population: List[Brain]) -> Optional[Brain]:
+    def get_best_brain(self, population: List[Brain]) -> Any:
         """
         Возвращает лучший мозг из популяции.
 

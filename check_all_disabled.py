@@ -9,7 +9,7 @@ total_brains = 0
 
 for brain_id in range(1, 21):  # Проверяем мозги 1-20
     try:
-        r = requests.get(f"http://localhost:8000/api/population/{brain_id}")
+        r = requests.get(f"http://localhost:8000/api/population/{brain_id}", timeout=10)
         if r.status_code == 200:
             data = r.json()
             total_brains += 1

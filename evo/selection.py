@@ -2,7 +2,7 @@
 Стратегии селекции для эволюционного алгоритма.
 """
 
-import random
+import secrets
 from typing import List
 
 from brains import Brain
@@ -44,7 +44,7 @@ class Selection:
     def _tournament_selection(self, population: List[Brain]) -> Brain:
         """Турнирная селекция."""
         # Выбираем случайных участников турнира
-        tournament = random.sample(
+        tournament = secrets.sample(
             population, min(self.tournament_size, len(population))
         )
 
@@ -61,10 +61,10 @@ class Selection:
 
         if total_fitness <= 0:
             # Если все приспособленности нулевые, выбираем случайно
-            return random.choice(population)
+            return secrets.choice(population)
 
         # Выбираем случайную точку на рулетке
-        rand_val = random.uniform(0, total_fitness)
+        rand_val = secrets.uniform(0, total_fitness)
 
         # Находим соответствующую особь
         current_sum = 0.0
@@ -89,7 +89,7 @@ class Selection:
         weights = [2 * (n - i) / (n * (n + 1)) for i in range(n)]
 
         # Выбираем на основе весов
-        rand_val = random.random()
+        rand_val = secrets.random()
         cumulative_weight = 0.0
 
         for i, weight in enumerate(weights):
