@@ -35,3 +35,10 @@ exclude = [
   "node_modules",
   "data",
 ]
+
+[tool.bandit]
+exclude_dirs = ["venv", "node_modules", "data", "tests"]
+skips = ["B101", "B601"]
+
+[tool.safety]
+output = "json"

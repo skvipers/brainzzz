@@ -5,7 +5,6 @@ repos:
     rev: 25.1.0
     hooks:
       - id: black
-        language_version: python3
         args: [--line-length=88]
         types: [python]
 
@@ -49,10 +48,13 @@ repos:
     hooks:
       - id: safety-check
         name: Safety
-        entry: python scripts/safety_check.py
-        language: system
+        entry: python scripts/security_check.py
+        language: python
         pass_filenames: false
         always_run: true
+        additional_dependencies:
+          - bandit
+          - safety
 
   # Frontend: ESLint
   - repo: local
@@ -60,7 +62,7 @@ repos:
       - id: frontend-lint
         name: ESLint
         entry: python scripts/frontend_lint.py
-        language: system
+        language: python
         types: [file]
         files: ^web/frontend/.*\.(ts|tsx|js|jsx)$
         pass_filenames: false
@@ -72,7 +74,7 @@ repos:
       - id: frontend-prettier
         name: Prettier
         entry: python scripts/frontend_prettier.py
-        language: system
+        language: python
         types: [file]
         files: ^web/frontend/.*\.(ts|tsx|js|jsx|json|css|md|html)$
         pass_filenames: false
@@ -84,7 +86,7 @@ repos:
       - id: frontend-tsc
         name: TypeScript
         entry: python scripts/frontend_tsc.py
-        language: system
+        language: python
         types: [file]
         files: ^web/frontend/.*\.(ts|tsx)$
         pass_filenames: false
@@ -96,7 +98,7 @@ repos:
       - id: frontend-test
         name: Frontend Tests
         entry: python scripts/frontend_test.py
-        language: system
+        language: python
         types: [file]
         files: ^web/frontend/.*\.(ts|tsx|js|jsx)$
         pass_filenames: false
@@ -137,12 +139,12 @@ repos:
       - id: backend-tests-pre-push
         name: Backend tests (pre-push)
         entry: python -m pytest -q tests
-        language: system
-        stages: [push]
+        language: python
         pass_filenames: false
+        additional_dependencies:
+          - pytest
       - id: frontend-build-pre-push
         name: Frontend build (pre-push)
         entry: python scripts/frontend_build.py
-        language: system
-        stages: [push]
+        language: python
         pass_filenames: false
