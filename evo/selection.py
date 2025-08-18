@@ -4,6 +4,7 @@
 
 import random
 from typing import List
+
 from brains import Brain
 
 

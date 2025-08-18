@@ -2,13 +2,14 @@
 Основной FastAPI приложение для Brainzzz API.
 """
 
-import logging
 import asyncio
+import logging
+
+from core.adapters import redis_adapter
+from core.settings import settings
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from ws.hub import WebSocketHub
-from core.adapters import redis_adapter
-from core.settings import settings
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)

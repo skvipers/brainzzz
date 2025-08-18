@@ -2,11 +2,13 @@
 Основной класс для представления когнитивной структуры (мозга).
 """
 
-import numpy as np
 from dataclasses import dataclass, field
+
+import numpy as np
+
 from .genome import Genome
-from .phenotype import Phenotype
 from .growth_rules import GrowthRules
+from .phenotype import Phenotype
 
 
 @dataclass

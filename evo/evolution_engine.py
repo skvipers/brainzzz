@@ -2,13 +2,16 @@
 Основной движок эволюции для популяции мозгов.
 """
 
-import numpy as np
 import random
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
+
+import numpy as np
+
 from brains import Brain
-from .selection import Selection
-from .mutation import Mutation
+
 from .crossover import Crossover
+from .mutation import Mutation
+from .selection import Selection
 
 
 class EvolutionEngine:

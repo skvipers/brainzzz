@@ -3,6 +3,7 @@
 """
 
 import random
+
 from brains import Brain
 
 

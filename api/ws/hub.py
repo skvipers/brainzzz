@@ -4,13 +4,13 @@ WebSocket хаб для ретрансляции событий из Redis в б
 
 import asyncio
 import logging
-from typing import Dict, Set, Any
-from fastapi import WebSocket
 from datetime import datetime
+from typing import Any, Dict, Set
 
-from core.schemas import WebSocketMessage, MessageType
 from core.adapters import redis_adapter
+from core.schemas import MessageType, WebSocketMessage
 from core.settings import settings
+from fastapi import WebSocket
 
 logger = logging.getLogger(__name__)
 

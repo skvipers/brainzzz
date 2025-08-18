@@ -3,6 +3,7 @@ REST API endpoints для управления симуляцией.
 """
 
 import logging
+
 from fastapi import APIRouter, HTTPException
 
 from api.core.adapters import duckdb_adapter, redis_adapter

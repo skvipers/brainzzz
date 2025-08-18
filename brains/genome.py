@@ -2,9 +2,9 @@
 Генетическая информация мозга.
 """
 
-from typing import List
-from dataclasses import dataclass
 import random
+from dataclasses import dataclass
+from typing import List
 
 
 @dataclass

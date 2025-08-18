@@ -8,9 +8,9 @@
 - Crossover: операторы скрещивания
 """
 
-from .evolution_engine import EvolutionEngine
-from .selection import Selection
-from .mutation import Mutation
 from .crossover import Crossover
+from .evolution_engine import EvolutionEngine
+from .mutation import Mutation
+from .selection import Selection
 
 __all__ = ["EvolutionEngine", "Selection", "Mutation", "Crossover"]

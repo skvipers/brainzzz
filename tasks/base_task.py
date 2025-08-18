@@ -2,9 +2,11 @@
 Базовый класс для задач.
 """
 
-import numpy as np
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Any, Dict
+from typing import Any, Dict, List, Tuple
+
+import numpy as np
+
 from brains import Brain
 
 

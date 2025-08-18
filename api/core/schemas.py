@@ -2,10 +2,11 @@
 Схемы WebSocket сообщений для Brainzzz API.
 """
 
-from pydantic import BaseModel, Field
-from typing import Dict, Any, List, Optional
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 
 class MessageType(str, Enum):

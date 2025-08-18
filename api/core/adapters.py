@@ -5,10 +5,11 @@
 import asyncio
 import json
 import logging
-from typing import Optional, Dict, Any, List
 from datetime import datetime
-import redis.asyncio as redis
+from typing import Any, Dict, List, Optional
+
 import duckdb
+import redis.asyncio as redis
 
 from .settings import settings
 

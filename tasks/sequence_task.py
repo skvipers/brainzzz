@@ -2,10 +2,13 @@
 Задача с последовательностями для тестирования памяти и паттернов.
 """
 
-import numpy as np
 from typing import List, Tuple
-from .base_task import BaseTask
+
+import numpy as np
+
 from brains import Brain
+
+from .base_task import BaseTask
 
 
 class SequenceTask(BaseTask):

@@ -10,7 +10,7 @@
 
 from .brain import Brain
 from .genome import Genome
-from .phenotype import Phenotype
 from .growth_rules import GrowthRules
+from .phenotype import Phenotype
 
 __all__ = ["Brain", "Genome", "Phenotype", "GrowthRules"]

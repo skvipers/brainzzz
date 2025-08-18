@@ -2,10 +2,13 @@
 Задача XOR для тестирования способности к нелинейной классификации.
 """
 
-import numpy as np
 from typing import List, Tuple
-from .base_task import BaseTask
+
+import numpy as np
+
 from brains import Brain
+
+from .base_task import BaseTask
 
 
 class XORTask(BaseTask):

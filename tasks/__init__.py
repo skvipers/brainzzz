@@ -8,9 +8,9 @@
 - SequenceTask: задача с последовательностями
 """
 
-from .task_manager import TaskManager
 from .base_task import BaseTask
-from .xor_task import XORTask
 from .sequence_task import SequenceTask
+from .task_manager import TaskManager
+from .xor_task import XORTask
 
 __all__ = ["TaskManager", "BaseTask", "XORTask", "SequenceTask"]
