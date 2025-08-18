@@ -106,53 +106,63 @@ async def get_brain(brain_id: int):
         if brain_id <= 0:
             raise HTTPException(status_code=400, detail="ID мозга должен быть положительным числом")
         
-        # Возвращаем mock данные для тестирования фронтенда
+        # Генерируем динамические данные мозга
+        node_count = 7 + (brain_id % 5)  # 7-11 узлов
+        connection_count = 8 + (brain_id % 7)  # 8-14 связей
+        
+        # Создаем узлы
+        nodes = []
+        for i in range(1, node_count + 1):
+            if i == 1:
+                node_type = "input"
+            elif i == node_count:
+                node_type = "output"
+            else:
+                node_type = "hidden"
+            
+            nodes.append({
+                "id": i,
+                "type": node_type,
+                "activation": "sigmoid",
+                "bias": round(0.1 + (i * 0.05), 2),
+                "threshold": round(0.3 + (i * 0.1), 2)
+            })
+        
+        # Создаем связи
+        connections = []
+        for i in range(1, connection_count + 1):
+            if i < node_count:  # Основные связи между соседними узлами
+                connections.append({
+                    "id": i,
+                    "from": i,
+                    "to": i + 1,
+                    "weight": round(-0.8 + (i * 0.3), 2),
+                    "plasticity": 0.1,
+                    "enabled": True
+                })
+            else:  # Дополнительные связи
+                from_node = (i % node_count) + 1
+                to_node = ((i + 1) % node_count) + 1
+                if from_node != to_node:
+                    # Некоторые мозги имеют неактивные связи для тестирования
+                    # Мозги 3, 7, 11, 15, 19 имеют неактивные связи
+                    is_disabled = brain_id in [3, 7, 11, 15, 19] and i > connection_count - 2
+                    connections.append({
+                        "id": i,
+                        "from": from_node,
+                        "to": to_node,
+                        "weight": round(-0.5 + (i * 0.2), 2),
+                        "plasticity": 0.1,
+                        "enabled": not is_disabled
+                    })
+
         mock_brain = {
             "id": brain_id,
-            "nodes": [
-                {
-                    "id": 1,
-                    "type": "input",
-                    "activation": "sigmoid",
-                    "bias": 0.1,
-                    "threshold": 0.5
-                },
-                {
-                    "id": 2,
-                    "type": "hidden",
-                    "activation": "sigmoid",
-                    "bias": -0.2,
-                    "threshold": 0.3
-                },
-                {
-                    "id": 3,
-                    "type": "output",
-                    "activation": "sigmoid",
-                    "bias": 0.0,
-                    "threshold": 0.7
-                }
-            ],
-            "connections": [
-                {
-                    "id": 1,
-                    "from": 1,
-                    "to": 2,
-                    "weight": 0.8,
-                    "plasticity": 0.1,
-                    "enabled": True
-                },
-                {
-                    "id": 2,
-                    "from": 2,
-                    "to": 3,
-                    "weight": -0.5,
-                    "plasticity": 0.1,
-                    "enabled": True
-                }
-            ],
-            "gp": 4.03,
-            "fitness": 0.403,
-            "age": 1
+            "nodes": nodes,
+            "connections": connections,
+            "gp": 3.5 + (brain_id * 0.1),  # GP от 3.6 до 5.5
+            "fitness": 0.3 + (brain_id * 0.01),  # Fitness от 0.31 до 0.5
+            "age": 1 + (brain_id % 3)  # Age от 1 до 3
         }
         
         logger.info(f"Успешно возвращены данные для мозга #{brain_id}: {len(mock_brain['nodes'])} узлов, {len(mock_brain['connections'])} связей")

@@ -133,13 +133,16 @@ async def get_brain(brain_id: int):
             from_node = (i % node_count) + 1
             to_node = ((i + 1) % node_count) + 1
             if from_node != to_node:
+                # Некоторые мозги имеют неактивные связи для тестирования
+                # Мозги 3, 7, 11, 15, 19 имеют неактивные связи
+                is_disabled = brain_id in [3, 7, 11, 15, 19] and i > connection_count - 2
                 connections.append({
                     "id": i,
                     "from": from_node,
                     "to": to_node,
                     "weight": round(-0.5 + (i * 0.2), 2),
                     "plasticity": 0.1,
-                    "enabled": True
+                    "enabled": not is_disabled
                 })
     
     mock_brain = {
