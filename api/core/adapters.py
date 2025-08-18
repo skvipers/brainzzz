@@ -83,13 +83,14 @@ class RedisAdapter:
 
             async def listen():
                 try:
-                    async for message in self.pubsub.listen():
-                        if message["type"] == "message":
-                            try:
-                                event = json.loads(message["data"])
-                                await callback(event)
-                            except json.JSONDecodeError as e:
-                                logger.error(f"Ошибка парсинга события: {e}")
+                    if self.pubsub:  # Проверяем, что pubsub не None
+                        async for message in self.pubsub.listen():
+                            if message["type"] == "message":
+                                try:
+                                    event = json.loads(message["data"])
+                                    await callback(event)
+                                except json.JSONDecodeError as e:
+                                    logger.error(f"Ошибка парсинга события: {e}")
                 except Exception as e:
                     logger.error(f"Ошибка в Redis listener: {e}")
 
@@ -105,6 +106,9 @@ class DuckDBAdapter:
     """Адаптер для DuckDB (чтение снапшотов)."""
 
     def __init__(self):
+        # Проверяем, что DATA_DIR не None
+        if settings.DATA_DIR is None:
+            raise ValueError("DATA_DIR не настроен в settings")
         self.db_path = settings.DATA_DIR / "brainzzz.duckdb"
         self.connected = False
 

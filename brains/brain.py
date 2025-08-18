@@ -119,34 +119,21 @@ class Brain:
 
     def _split_node(self):
         """Разделяет существующий узел."""
-        # Выбираем узел для разделения
-        target_node = self.growth_rules.select_node_for_splitting(self)
+        # TODO: Реализовать выбор узла для разделения
+        # target_node = self.growth_rules.select_node_for_splitting(self)
 
-        if target_node:
-            # Разделяем узел в геноме
-            new_nodes = self.genome.split_node(target_node.id)
-
-            # Обновляем фенотип
-            self.phenotype = Phenotype(self.genome)
-
-            # Обновляем состояние
-            self._update_state_after_splitting(target_node, new_nodes)
-
-            # logger.info(f"Узел {target_node.id} разделен на {len(new_nodes)} узлов")
+        # Временно отключаем функциональность разделения
+        # logger.info("Разделение узлов временно отключено")
+        pass
 
     def _add_connection(self):
         """Добавляет новое соединение."""
-        # Выбираем узлы для соединения
-        from_node, to_node = self.growth_rules.select_connection_endpoints(self)
+        # TODO: Реализовать выбор узлов для соединения
+        # from_node, to_node = self.growth_rules.select_connection_endpoints(self)
 
-        if from_node and to_node:
-            # Добавляем соединение в геном
-            self.genome.add_connection(from_node.id, to_node.id)
-
-            # Обновляем фенотип
-            self.phenotype = Phenotype(self.genome)
-
-            # logger.info(f"Добавлено соединение: {from_node.id} -> {to_node.id}")
+        # Временно отключаем функциональность добавления соединений
+        # logger.info("Добавление соединений временно отключено")
+        pass
 
     def _update_state_after_splitting(self, old_node, new_nodes):
         """Обновляет состояние после разделения узла."""
