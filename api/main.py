@@ -303,7 +303,7 @@ async def get_brain(brain_id: int):
 
     logger.info(
         f"Успешно возвращены данные для мозга #{brain_id}: "
-        f"{len(mock_brain['nodes'])} узлов, {len(mock_brain['connections'])} связей"
+        f"{len(nodes)} узлов, {len(connections)} связей"
     )
     return mock_brain
 

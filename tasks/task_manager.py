@@ -134,7 +134,12 @@ class TaskManager:
         if not self.tasks:
             return {}
 
-        stats = {"total_tasks": len(self.tasks), "tasks": [], "average_difficulty": 0.0}
+        tasks_list: List[Dict[str, Any]] = []
+        stats = {
+            "total_tasks": len(self.tasks),
+            "tasks": tasks_list,
+            "average_difficulty": 0.0,
+        }
 
         total_difficulty = 0.0
 
@@ -143,7 +148,7 @@ class TaskManager:
             task_info["weight"] = self.task_weights.get(
                 task.name, 1.0 / len(self.tasks)
             )
-            stats["tasks"].append(task_info)
+            tasks_list.append(task_info)
 
             total_difficulty += task.difficulty
 
