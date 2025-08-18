@@ -24,6 +24,50 @@ repos:
         args: [--max-line-length=88, --extend-ignore=E203]
         types: [python]
 
+  # Frontend: ESLint
+  - repo: local
+    hooks:
+      - id: eslint
+        name: ESLint
+        entry: python scripts/frontend_lint.py
+        language: system
+        types: [file]
+        files: ^web/frontend/.*\.(ts|tsx|js|jsx)$
+        pass_filenames: false
+
+  # Frontend: Prettier
+  - repo: local
+    hooks:
+      - id: prettier
+        name: Prettier
+        entry: python scripts/frontend_prettier.py
+        language: system
+        types: [file]
+        files: ^web/frontend/.*\.(ts|tsx|js|jsx|json|css|md|html)$
+        pass_filenames: false
+
+  # Frontend: TypeScript проверка
+  - repo: local
+    hooks:
+      - id: typescript
+        name: TypeScript
+        entry: python scripts/frontend_tsc.py
+        language: system
+        types: [file]
+        files: ^web/frontend/.*\.(ts|tsx)$
+        pass_filenames: false
+
+  # Frontend: Тесты
+  - repo: local
+    hooks:
+      - id: frontend-tests
+        name: Frontend Tests
+        entry: python scripts/frontend_test.py
+        language: system
+        types: [file]
+        files: ^web/frontend/.*\.(ts|tsx|js|jsx)$
+        pass_filenames: false
+
   # Базовые проверки
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0

@@ -1,26 +1,27 @@
-import React, { useState, useEffect } from 'react'
-import { TrendingUp, Play, BarChart3, Zap } from 'lucide-react'
-import { useBrainStore } from '../stores/brainStore'
+import React, { useState, useEffect } from 'react';
+import { TrendingUp, Play, BarChart3, Zap } from 'lucide-react';
+import { useBrainStore } from '../stores/brainStore';
 
 interface EvolutionHistoryEntry {
-  id: number
-  timestamp: string
-  action: string
-  populationSize: number
-  mutationRate: number
-  message: string
-  status: 'success' | 'error'
-  generation?: number
-  bestFitness?: number
-  avgFitness?: number
+  id: number;
+  timestamp: string;
+  action: string;
+  populationSize: number;
+  mutationRate: number;
+  message: string;
+  status: 'success' | 'error';
+  generation?: number;
+  bestFitness?: number;
+  avgFitness?: number;
 }
 
 const Evolution = () => {
-  const { stats, evaluatePopulation, fetchStats, loading, startEvolution, fetchPopulation } = useBrainStore()
-  const [mutationRate, setMutationRate] = useState(0.3)
-  const [populationSize, setPopulationSize] = useState(20)
-  const [isEvolving, setIsEvolving] = useState(false)
-  const [isRefreshing, setIsRefreshing] = useState(false)
+  const { stats, evaluatePopulation, fetchStats, loading, startEvolution, fetchPopulation } =
+    useBrainStore();
+  const [mutationRate, setMutationRate] = useState(0.3);
+  const [populationSize, setPopulationSize] = useState(20);
+  const [isEvolving, setIsEvolving] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [evolutionHistory, setEvolutionHistory] = useState<EvolutionHistoryEntry[]>([
     {
       id: 1,
@@ -32,28 +33,28 @@ const Evolution = () => {
       status: 'success',
       generation: 0,
       bestFitness: 0.0,
-      avgFitness: 0.0
-    }
-  ])
+      avgFitness: 0.0,
+    },
+  ]);
 
   // Загружаем статистику при загрузке компонента и обновляем периодически
   useEffect(() => {
-    fetchStats()
+    fetchStats();
 
     // Обновляем данные каждые 3 секунды для отображения актуальной информации
     const interval = setInterval(() => {
-      fetchStats()
-    }, 3000)
+      fetchStats();
+    }, 3000);
 
-    return () => clearInterval(interval)
-  }, [fetchStats])
+    return () => clearInterval(interval);
+  }, [fetchStats]);
 
   const handleStartEvolution = async () => {
     try {
-      setIsEvolving(true)
+      setIsEvolving(true);
 
       // Запускаем эволюцию через store
-      await startEvolution(mutationRate, populationSize)
+      await startEvolution(mutationRate, populationSize);
 
       // Добавляем в историю
       const newEntry: EvolutionHistoryEntry = {
@@ -66,24 +67,23 @@ const Evolution = () => {
         status: 'success',
         generation: (stats.generation || 0) + 1,
         bestFitness: stats.max_fitness || 0,
-        avgFitness: stats.avg_fitness || 0
-      }
+        avgFitness: stats.avg_fitness || 0,
+      };
 
-      setEvolutionHistory(prev => [newEntry, ...prev.slice(0, 9)]) // Оставляем последние 10 записей
+      setEvolutionHistory((prev) => [newEntry, ...prev.slice(0, 9)]); // Оставляем последние 10 записей
 
       // Обновляем данные популяции и статистику
-      await fetchPopulation()
-      await evaluatePopulation()
-      await fetchStats()
+      await fetchPopulation();
+      await evaluatePopulation();
+      await fetchStats();
 
       // Добавляем небольшую задержку и повторно обновляем для гарантии
       setTimeout(async () => {
-        await fetchPopulation()
-        await fetchStats()
-      }, 1000)
-
+        await fetchPopulation();
+        await fetchStats();
+      }, 1000);
     } catch (error) {
-      console.error('Ошибка:', error)
+      console.error('Ошибка:', error);
 
       // Добавляем ошибку в историю
       const errorEntry: EvolutionHistoryEntry = {
@@ -96,19 +96,19 @@ const Evolution = () => {
         status: 'error',
         generation: stats.generation || 0,
         bestFitness: stats.max_fitness || 0,
-        avgFitness: stats.avg_fitness || 0
-      }
+        avgFitness: stats.avg_fitness || 0,
+      };
 
-      setEvolutionHistory(prev => [errorEntry, ...prev.slice(0, 9)])
+      setEvolutionHistory((prev) => [errorEntry, ...prev.slice(0, 9)]);
     } finally {
-      setIsEvolving(false)
+      setIsEvolving(false);
     }
-  }
+  };
 
   const handleResizePopulation = async () => {
     try {
       // Изменяем размер популяции через store
-      await startEvolution(mutationRate, populationSize)
+      await startEvolution(mutationRate, populationSize);
 
       // Добавляем в историю
       const newEntry: EvolutionHistoryEntry = {
@@ -121,23 +121,22 @@ const Evolution = () => {
         status: 'success',
         generation: stats.generation || 0,
         bestFitness: stats.max_fitness || 0,
-        avgFitness: stats.avg_fitness || 0
-      }
+        avgFitness: stats.avg_fitness || 0,
+      };
 
-      setEvolutionHistory(prev => [newEntry, ...prev.slice(0, 9)])
+      setEvolutionHistory((prev) => [newEntry, ...prev.slice(0, 9)]);
 
       // Обновляем данные популяции и статистику
-      await fetchPopulation()
-      await fetchStats()
+      await fetchPopulation();
+      await fetchStats();
 
       // Добавляем небольшую задержку и повторно обновляем для гарантии
       setTimeout(async () => {
-        await fetchPopulation()
-        await fetchStats()
-      }, 1000)
-
+        await fetchPopulation();
+        await fetchStats();
+      }, 1000);
     } catch (error) {
-      console.error('Ошибка изменения размера популяции:', error)
+      console.error('Ошибка изменения размера популяции:', error);
 
       const errorEntry: EvolutionHistoryEntry = {
         id: Date.now(),
@@ -149,39 +148,39 @@ const Evolution = () => {
         status: 'error',
         generation: stats.generation || 0,
         bestFitness: stats.max_fitness || 0,
-        avgFitness: stats.avg_fitness || 0
-      }
+        avgFitness: stats.avg_fitness || 0,
+      };
 
-      setEvolutionHistory(prev => [errorEntry, ...prev.slice(0, 9)])
+      setEvolutionHistory((prev) => [errorEntry, ...prev.slice(0, 9)]);
     }
-  }
+  };
 
   return (
     <div className="px-8">
-                <div className="mb-8 flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Эволюция</h1>
-              <p className="text-gray-600">Управление эволюционным процессом популяции</p>
-            </div>
-            <button
-              onClick={async () => {
-                setIsRefreshing(true)
-                await fetchPopulation()
-                await fetchStats()
-                setIsRefreshing(false)
-              }}
-              className="btn-secondary flex items-center space-x-2 px-4 py-2"
-              title="Обновить данные"
-              disabled={isRefreshing}
-            >
-              {isRefreshing ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              ) : (
-                <TrendingUp className="h-4 w-4" />
-              )}
-              <span>{isRefreshing ? 'Обновление...' : 'Обновить'}</span>
-            </button>
-          </div>
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Эволюция</h1>
+          <p className="text-gray-600">Управление эволюционным процессом популяции</p>
+        </div>
+        <button
+          onClick={async () => {
+            setIsRefreshing(true);
+            await fetchPopulation();
+            await fetchStats();
+            setIsRefreshing(false);
+          }}
+          className="btn-secondary flex items-center space-x-2 px-4 py-2"
+          title="Обновить данные"
+          disabled={isRefreshing}
+        >
+          {isRefreshing ? (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+          ) : (
+            <TrendingUp className="h-4 w-4" />
+          )}
+          <span>{isRefreshing ? 'Обновление...' : 'Обновить'}</span>
+        </button>
+      </div>
 
       {/* Параметры эволюции - исправленная вёрстка */}
       <div className="card mb-8">
@@ -190,9 +189,7 @@ const Evolution = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
           {/* Скорость мутации */}
           <div className="space-y-3">
-            <label className="block text-sm font-medium text-gray-700">
-              Скорость мутации
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Скорость мутации</label>
             <input
               type="range"
               min="0.1"
@@ -211,9 +208,7 @@ const Evolution = () => {
 
           {/* Размер популяции */}
           <div className="space-y-3">
-            <label className="block text-sm font-medium text-gray-700">
-              Размер популяции
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Размер популяции</label>
             <input
               type="number"
               min="5"
@@ -226,9 +221,7 @@ const Evolution = () => {
 
           {/* Кнопки управления */}
           <div className="space-y-3">
-            <label className="block text-sm font-medium text-gray-700">
-              Действия
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Действия</label>
             <div className="flex space-x-3">
               <button
                 onClick={handleResizePopulation}
@@ -327,11 +320,15 @@ const Evolution = () => {
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex items-center space-x-2">
-                          <div className={`w-3 h-3 rounded-full ${
-                            (gen.bestFitness || 0) > 0.8 ? 'bg-green-500' :
-                            (gen.bestFitness || 0) > 0.5 ? 'bg-yellow-500' :
-                            'bg-red-500'
-                          }`} />
+                          <div
+                            className={`w-3 h-3 rounded-full ${
+                              (gen.bestFitness || 0) > 0.8
+                                ? 'bg-green-500'
+                                : (gen.bestFitness || 0) > 0.5
+                                  ? 'bg-yellow-500'
+                                  : 'bg-red-500'
+                            }`}
+                          />
                           <span>{(gen.bestFitness || 0).toFixed(3)}</span>
                         </div>
                       </td>
@@ -375,7 +372,7 @@ const Evolution = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Evolution
+export default Evolution;

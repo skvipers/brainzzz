@@ -1,18 +1,28 @@
-import { useState } from 'react'
-import { Target, Plus, Play, Pause, RotateCcw, BarChart3, CheckCircle, Clock, AlertCircle } from 'lucide-react'
+import { useState } from 'react';
+import {
+  Target,
+  Plus,
+  Play,
+  Pause,
+  RotateCcw,
+  BarChart3,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+} from 'lucide-react';
 
 interface Task {
-  id: string
-  name: string
-  description: string
-  type: 'xor' | 'sequence' | 'custom'
-  status: 'active' | 'paused' | 'completed' | 'failed'
-  difficulty: 'easy' | 'medium' | 'hard'
-  bestScore: number
-  avgScore: number
-  attempts: number
-  createdAt: string
-  lastRun: string
+  id: string;
+  name: string;
+  description: string;
+  type: 'xor' | 'sequence' | 'custom';
+  status: 'active' | 'paused' | 'completed' | 'failed';
+  difficulty: 'easy' | 'medium' | 'hard';
+  bestScore: number;
+  avgScore: number;
+  attempts: number;
+  createdAt: string;
+  lastRun: string;
 }
 
 const Tasks = () => {
@@ -28,7 +38,7 @@ const Tasks = () => {
       avgScore: 0.76,
       attempts: 45,
       createdAt: '2024-12-17 18:00:00',
-      lastRun: '2024-12-17 20:15:00'
+      lastRun: '2024-12-17 20:15:00',
     },
     {
       id: '2',
@@ -41,7 +51,7 @@ const Tasks = () => {
       avgScore: 0.62,
       attempts: 32,
       createdAt: '2024-12-17 18:30:00',
-      lastRun: '2024-12-17 20:10:00'
+      lastRun: '2024-12-17 20:10:00',
     },
     {
       id: '3',
@@ -54,75 +64,99 @@ const Tasks = () => {
       avgScore: 0.28,
       attempts: 18,
       createdAt: '2024-12-17 19:00:00',
-      lastRun: '2024-12-17 19:45:00'
-    }
-  ])
+      lastRun: '2024-12-17 19:45:00',
+    },
+  ]);
 
-  const [showNewTaskForm, setShowNewTaskForm] = useState(false)
+  const [showNewTaskForm, setShowNewTaskForm] = useState(false);
   const [newTask, setNewTask] = useState({
     name: '',
     description: '',
-    type: 'xor' as const,
-    difficulty: 'easy' as const,
-    status: 'active' as const
-  })
+    type: 'xor' as 'xor' | 'sequence' | 'custom',
+    difficulty: 'easy' as 'easy' | 'medium' | 'hard',
+    status: 'active' as 'active' | 'paused' | 'completed' | 'failed',
+  });
 
   const taskTypes = [
     { value: 'xor' as const, label: 'XOR', description: 'Логическая операция исключающего ИЛИ' },
-    { value: 'sequence' as const, label: 'Последовательности', description: 'Запоминание и воспроизведение последовательностей' },
-    { value: 'classification' as const, label: 'Классификация', description: 'Разделение данных на классы' },
-    { value: 'regression' as const, label: 'Регрессия', description: 'Предсказание числовых значений' },
-    { value: 'custom' as const, label: 'Пользовательская', description: 'Собственная задача с настраиваемыми параметрами' }
-  ]
+    {
+      value: 'sequence' as const,
+      label: 'Последовательности',
+      description: 'Запоминание и воспроизведение последовательностей',
+    },
+    {
+      value: 'classification' as const,
+      label: 'Классификация',
+      description: 'Разделение данных на классы',
+    },
+    {
+      value: 'regression' as const,
+      label: 'Регрессия',
+      description: 'Предсказание числовых значений',
+    },
+    {
+      value: 'custom' as const,
+      label: 'Пользовательская',
+      description: 'Собственная задача с настраиваемыми параметрами',
+    },
+  ];
 
   const difficulties = [
-    { value: 'easy' as const, label: 'Легкая', description: 'Базовые задачи для начинающих мозгов' },
+    {
+      value: 'easy' as const,
+      label: 'Легкая',
+      description: 'Базовые задачи для начинающих мозгов',
+    },
     { value: 'medium' as const, label: 'Средняя', description: 'Задачи средней сложности' },
-    { value: 'hard' as const, label: 'Сложная', description: 'Сложные задачи для продвинутых мозгов' }
-  ]
+    {
+      value: 'hard' as const,
+      label: 'Сложная',
+      description: 'Сложные задачи для продвинутых мозгов',
+    },
+  ];
 
   const getStatusIcon = (status: Task['status']) => {
     switch (status) {
       case 'active':
-        return <Play className="h-4 w-4 text-green-600" />
+        return <Play className="h-4 w-4 text-green-600" />;
       case 'paused':
-        return <Pause className="h-4 w-4 text-yellow-600" />
+        return <Pause className="h-4 w-4 text-yellow-600" />;
       case 'completed':
-        return <CheckCircle className="h-4 w-4 text-blue-600" />
+        return <CheckCircle className="h-4 w-4 text-blue-600" />;
       case 'failed':
-        return <AlertCircle className="h-4 w-4 text-red-600" />
+        return <AlertCircle className="h-4 w-4 text-red-600" />;
       default:
-        return <Clock className="h-4 w-4 text-gray-600" />
+        return <Clock className="h-4 w-4 text-gray-600" />;
     }
-  }
+  };
 
   const getStatusColor = (status: Task['status']) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-100 text-green-800';
       case 'paused':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-100 text-yellow-800';
       case 'completed':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-100 text-blue-800';
       case 'failed':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-100 text-red-800';
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800';
     }
-  }
+  };
 
   const getDifficultyColor = (difficulty: Task['difficulty']) => {
     switch (difficulty) {
       case 'easy':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-100 text-green-800';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-100 text-yellow-800';
       case 'hard':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-100 text-red-800';
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800';
     }
-  }
+  };
 
   const handleCreateTask = () => {
     if (newTask.name && newTask.description) {
@@ -134,33 +168,37 @@ const Tasks = () => {
         avgScore: 0,
         attempts: 0,
         createdAt: new Date().toLocaleString(),
-        lastRun: '-'
-      }
-      setTasks([...tasks, task])
-      setNewTask({ name: '', description: '', type: 'custom', difficulty: 'medium' })
-      setShowNewTaskForm(false)
+        lastRun: '-',
+      };
+      setTasks([...tasks, task]);
+      setNewTask({ name: '', description: '', type: 'custom', difficulty: 'medium', status: 'active' });
+      setShowNewTaskForm(false);
     }
-  }
+  };
 
   const toggleTaskStatus = (taskId: string) => {
-    setTasks(tasks.map(task =>
-      task.id === taskId
-        ? { ...task, status: task.status === 'active' ? 'paused' : 'active' }
-        : task
-    ))
-  }
+    setTasks(
+      tasks.map((task) =>
+        task.id === taskId
+          ? { ...task, status: task.status === 'active' ? 'paused' : 'active' }
+          : task,
+      ),
+    );
+  };
 
   const deleteTask = (taskId: string) => {
-    setTasks(tasks.filter(task => task.id !== taskId))
-  }
+    setTasks(tasks.filter((task) => task.id !== taskId));
+  };
 
   const resetTask = (taskId: string) => {
-    setTasks(tasks.map(task =>
-      task.id === taskId
-        ? { ...task, bestScore: 0, avgScore: 0, attempts: 0, lastRun: '-' }
-        : task
-    ))
-  }
+    setTasks(
+      tasks.map((task) =>
+        task.id === taskId
+          ? { ...task, bestScore: 0, avgScore: 0, attempts: 0, lastRun: '-' }
+          : task,
+      ),
+    );
+  };
 
   return (
     <div className="px-8">
@@ -191,7 +229,7 @@ const Tasks = () => {
             <div>
               <p className="text-sm font-medium text-gray-600">Активные</p>
               <p className="text-2xl font-bold text-gray-900">
-                {tasks.filter(t => t.status === 'active').length}
+                {tasks.filter((t) => t.status === 'active').length}
               </p>
             </div>
           </div>
@@ -205,7 +243,7 @@ const Tasks = () => {
             <div>
               <p className="text-sm font-medium text-gray-600">Лучший результат</p>
               <p className="text-2xl font-bold text-gray-900">
-                {Math.max(...tasks.map(t => t.bestScore), 0).toFixed(2)}
+                {Math.max(...tasks.map((t) => t.bestScore), 0).toFixed(2)}
               </p>
             </div>
           </div>
@@ -251,34 +289,32 @@ const Tasks = () => {
                 <input
                   type="text"
                   value={newTask.name}
-                  onChange={(e) => setNewTask({...newTask, name: e.target.value})}
+                  onChange={(e) => setNewTask({ ...newTask, name: e.target.value })}
                   className="input-field w-full"
                   placeholder="Например: XOR с 3 входами"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Описание
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Описание</label>
                 <textarea
                   value={newTask.description}
-                  onChange={(e) => setNewTask({...newTask, description: e.target.value})}
+                  onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
                   className="input-field w-full h-20"
                   placeholder="Подробное описание задачи, входные данные, ожидаемый результат..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Тип задачи *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Тип задачи *</label>
                 <select
                   value={newTask.type}
-                  onChange={(e) => setNewTask({...newTask, type: e.target.value})}
+                  onChange={(e) =>
+                    setNewTask({ ...newTask, type: e.target.value as 'xor' | 'sequence' | 'custom' })
+                  }
                   className="input-field w-full"
                 >
-                  {taskTypes.map(type => (
+                  {taskTypes.map((type) => (
                     <option key={type.value} value={type.value}>
                       {type.label} - {type.description}
                     </option>
@@ -287,15 +323,18 @@ const Tasks = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Сложность *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Сложность *</label>
                 <select
                   value={newTask.difficulty}
-                  onChange={(e) => setNewTask({...newTask, difficulty: e.target.value})}
+                  onChange={(e) =>
+                    setNewTask({
+                      ...newTask,
+                      difficulty: e.target.value as 'easy' | 'medium' | 'hard',
+                    })
+                  }
                   className="input-field w-full"
                 >
-                  {difficulties.map(diff => (
+                  {difficulties.map((diff) => (
                     <option key={diff.value} value={diff.value}>
                       {diff.label} - {diff.description}
                     </option>
@@ -304,20 +343,27 @@ const Tasks = () => {
               </div>
 
               <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
-                <p><strong>Советы по созданию задач:</strong></p>
+                <p>
+                  <strong>Советы по созданию задач:</strong>
+                </p>
                 <ul className="list-disc list-inside mt-2 space-y-1">
-                  <li><strong>XOR:</strong> Логическая задача для проверки способности к нелинейному мышлению</li>
-                  <li><strong>Последовательности:</strong> Проверяет память и способность к паттернам</li>
-                  <li><strong>Пользовательская:</strong> Создайте собственную задачу с помощью Python кода</li>
+                  <li>
+                    <strong>XOR:</strong> Логическая задача для проверки способности к нелинейному
+                    мышлению
+                  </li>
+                  <li>
+                    <strong>Последовательности:</strong> Проверяет память и способность к паттернам
+                  </li>
+                  <li>
+                    <strong>Пользовательская:</strong> Создайте собственную задачу с помощью Python
+                    кода
+                  </li>
                 </ul>
               </div>
             </div>
 
             <div className="flex space-x-3 mt-6">
-              <button
-                onClick={() => setShowNewTaskForm(false)}
-                className="btn-secondary flex-1"
-              >
+              <button onClick={() => setShowNewTaskForm(false)} className="btn-secondary flex-1">
                 Отмена
               </button>
               <button
@@ -365,19 +411,21 @@ const Tasks = () => {
                     <div>
                       <div className="text-sm font-medium text-gray-900">{task.name}</div>
                       <div className="text-sm text-gray-500">{task.description}</div>
-                      <div className="text-xs text-gray-400 mt-1">
-                        Создана: {task.createdAt}
-                      </div>
+                      <div className="text-xs text-gray-400 mt-1">Создана: {task.createdAt}</div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}
+                    >
                       {getStatusIcon(task.status)}
                       <span className="ml-1 capitalize">{task.status}</span>
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getDifficultyColor(task.difficulty)}`}>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getDifficultyColor(task.difficulty)}`}
+                    >
                       {task.difficulty}
                     </span>
                   </td>
@@ -402,7 +450,11 @@ const Tasks = () => {
                         className="text-brain-600 hover:text-brain-900"
                         title={task.status === 'active' ? 'Приостановить' : 'Запустить'}
                       >
-                        {task.status === 'active' ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                        {task.status === 'active' ? (
+                          <Pause className="h-4 w-4" />
+                        ) : (
+                          <Play className="h-4 w-4" />
+                        )}
                       </button>
                       <button
                         onClick={() => resetTask(task.id)}
@@ -437,7 +489,7 @@ const Tasks = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Tasks
+export default Tasks;

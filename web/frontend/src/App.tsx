@@ -1,11 +1,11 @@
-import { Routes, Route } from 'react-router-dom'
-import Layout from './components/Layout'
-import Dashboard from './pages/Dashboard'
-import Population from './pages/Population'
-import BrainDetail from './pages/BrainDetail'
-import Evolution from './pages/Evolution'
-import Tasks from './pages/Tasks'
-import { WebSocketProvider } from './components/WebSocketProvider'
+import { Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout';
+import Dashboard from './pages/Dashboard';
+import Population from './pages/Population';
+import BrainDetail from './pages/BrainDetail';
+import Evolution from './pages/Evolution';
+import Tasks from './pages/Tasks';
+import { WebSocketProvider } from './components/WebSocketProvider';
 
 function App() {
   return (
@@ -20,7 +20,7 @@ function App() {
         </Route>
       </Routes>
     </WebSocketProvider>
-  )
+  );
 }
 
-export default App
+export default App;

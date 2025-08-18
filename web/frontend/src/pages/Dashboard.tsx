@@ -1,50 +1,59 @@
-import React, { useEffect } from 'react'
-import { Brain, Users, TrendingUp, Target, Activity, Zap, Wifi, WifiOff } from 'lucide-react'
-import { useBrainStore } from '../stores/brainStore'
-import { useWebSocketContext } from '../components/WebSocketProvider'
+import React, { useEffect } from 'react';
+import { Brain, Users, TrendingUp, Target, Activity, Zap, Wifi, WifiOff } from 'lucide-react';
+import { useBrainStore } from '../stores/brainStore';
+import { useWebSocketContext } from '../components/WebSocketProvider';
 
 const Dashboard = () => {
-  const { population, stats, loading, fetchPopulation, fetchStats, startEvolution, evaluatePopulation, wsConnected } = useBrainStore()
-  const { isConnected } = useWebSocketContext()
+  const {
+    population,
+    stats,
+    loading,
+    fetchPopulation,
+    fetchStats,
+    startEvolution,
+    evaluatePopulation,
+    wsConnected,
+  } = useBrainStore();
+  const { isConnected } = useWebSocketContext();
 
   useEffect(() => {
     // Загружаем начальные данные
-    fetchPopulation()
-    fetchStats()
+    fetchPopulation();
+    fetchStats();
 
     // Убираем автоматическое обновление - теперь данные обновляются через WebSocket
-  }, [fetchPopulation, fetchStats])
+  }, [fetchPopulation, fetchStats]);
 
   const handleStartEvolution = async () => {
     try {
-      await startEvolution(0.3) // стандартная скорость мутации
+      await startEvolution(0.3); // стандартная скорость мутации
       // Обновляем данные после запуска эволюции
       setTimeout(() => {
-        fetchPopulation()
-        fetchStats()
-      }, 1000)
+        fetchPopulation();
+        fetchStats();
+      }, 1000);
     } catch (error) {
-      console.error('Ошибка запуска эволюции:', error)
+      console.error('Ошибка запуска эволюции:', error);
     }
-  }
+  };
 
   const handleEvaluatePopulation = async () => {
     try {
-      await evaluatePopulation()
+      await evaluatePopulation();
       // Обновляем данные после оценки
       setTimeout(() => {
-        fetchPopulation()
-        fetchStats()
-      }, 1000)
+        fetchPopulation();
+        fetchStats();
+      }, 1000);
     } catch (error) {
-      console.error('Ошибка оценки популяции:', error)
+      console.error('Ошибка оценки популяции:', error);
     }
-  }
+  };
 
   const handleAddTask = () => {
     // Переходим на страницу задач
-    window.location.href = '/tasks'
-  }
+    window.location.href = '/tasks';
+  };
 
   const metrics = [
     {
@@ -82,14 +91,29 @@ const Dashboard = () => {
       change: '-2%',
       changeType: 'negative' as const,
     },
-  ]
+  ];
 
   const recentActivity = [
-    { id: 1, type: 'evolution' as const, message: 'Завершена эволюция поколения 15', time: '2 мин назад' },
+    {
+      id: 1,
+      type: 'evolution' as const,
+      message: 'Завершена эволюция поколения 15',
+      time: '2 мин назад',
+    },
     { id: 2, type: 'growth' as const, message: 'Мозг #7 вырос на 3 узла', time: '5 мин назад' },
-    { id: 3, type: 'task' as const, message: 'Задача XOR решена с точностью 98%', time: '12 мин назад' },
-    { id: 4, type: 'mutation' as const, message: 'Применены мутации к 12 мозгам', time: '18 мин назад' },
-  ]
+    {
+      id: 3,
+      type: 'task' as const,
+      message: 'Задача XOR решена с точностью 98%',
+      time: '12 мин назад',
+    },
+    {
+      id: 4,
+      type: 'mutation' as const,
+      message: 'Применены мутации к 12 мозгам',
+      time: '18 мин назад',
+    },
+  ];
 
   return (
     <div className="px-8">
@@ -101,9 +125,11 @@ const Dashboard = () => {
 
         {/* WebSocket статус */}
         <div className="flex items-center space-x-2">
-          <div className={`flex items-center space-x-2 px-3 py-2 rounded-lg ${
-            isConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-          }`}>
+          <div
+            className={`flex items-center space-x-2 px-3 py-2 rounded-lg ${
+              isConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`}
+          >
             {isConnected ? (
               <>
                 <Wifi className="w-4 h-4" />
@@ -135,10 +161,15 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="mt-4 flex items-center">
-              <span className={`text-sm font-medium ${
-                metric.changeType === 'positive' ? 'text-green-600' :
-                metric.changeType === 'negative' ? 'text-red-600' : 'text-gray-600'
-              }`}>
+              <span
+                className={`text-sm font-medium ${
+                  metric.changeType === 'positive'
+                    ? 'text-green-600'
+                    : metric.changeType === 'negative'
+                      ? 'text-red-600'
+                      : 'text-gray-600'
+                }`}
+              >
                 {metric.change}
               </span>
               <span className="text-sm text-gray-500 ml-2">с прошлого обновления</span>
@@ -180,12 +211,17 @@ const Dashboard = () => {
           <div className="space-y-3">
             {recentActivity.map((activity) => (
               <div key={activity.id} className="flex items-start space-x-3">
-                <div className={`h-2 w-2 rounded-full mt-2 ${
-                  activity.type === 'evolution' ? 'bg-blue-500' :
-                  activity.type === 'growth' ? 'bg-green-500' :
-                  activity.type === 'task' ? 'bg-purple-500' :
-                  'bg-gray-500'
-                }`} />
+                <div
+                  className={`h-2 w-2 rounded-full mt-2 ${
+                    activity.type === 'evolution'
+                      ? 'bg-blue-500'
+                      : activity.type === 'growth'
+                        ? 'bg-green-500'
+                        : activity.type === 'task'
+                          ? 'bg-purple-500'
+                          : 'bg-gray-500'
+                  }`}
+                />
                 <div className="flex-1">
                   <p className="text-sm text-gray-900">{activity.message}</p>
                   <p className="text-xs text-gray-500">{activity.time}</p>
@@ -214,17 +250,14 @@ const Dashboard = () => {
             <Activity className="h-4 w-4" />
             <span>Оценить популяцию</span>
           </button>
-          <button
-            onClick={handleAddTask}
-            className="btn-secondary flex items-center space-x-2"
-          >
+          <button onClick={handleAddTask} className="btn-secondary flex items-center space-x-2">
             <Target className="h-4 w-4" />
             <span>Добавить задачу</span>
           </button>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;

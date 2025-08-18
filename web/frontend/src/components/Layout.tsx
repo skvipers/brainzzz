@@ -1,8 +1,8 @@
-import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Brain, Users, TrendingUp, Target, Settings } from 'lucide-react'
+import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Brain, Users, TrendingUp, Target, Settings } from 'lucide-react';
 
 const Layout = () => {
-  const location = useLocation()
+  const location = useLocation();
 
   const navigation = [
     { name: 'Дашборд', href: '/', icon: Brain },
@@ -10,7 +10,7 @@ const Layout = () => {
     { name: 'Эволюция', href: '/evolution', icon: TrendingUp },
     { name: 'Задачи', href: '/tasks', icon: Target },
     { name: 'Настройки', href: '/settings', icon: Settings },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -28,7 +28,7 @@ const Layout = () => {
         <nav className="mt-8 px-4">
           <ul className="space-y-2">
             {navigation.map((item) => {
-              const isActive = location.pathname === item.href
+              const isActive = location.pathname === item.href;
               return (
                 <li key={item.name}>
                   <Link
@@ -43,7 +43,7 @@ const Layout = () => {
                     <span>{item.name}</span>
                   </Link>
                 </li>
-              )
+              );
             })}
           </ul>
         </nav>
@@ -68,7 +68,7 @@ const Layout = () => {
         </main>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Layout
+export default Layout;
