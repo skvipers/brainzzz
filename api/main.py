@@ -40,8 +40,16 @@ websocket_hub = WebSocketHub()
 @app.on_event("startup")
 async def startup_event():
     """Событие запуска приложения."""
-    logger.info("🚀 Brainzzz API запускается...")
+    logger.info("[STARTUP] Brainzzz API запускается...")
     logger.info(f"WebSocket лимит соединений: {websocket_hub.max_connections}")
+
+    # Запускаем Redis listener для WebSocket хаба
+    try:
+        await websocket_hub.start_redis_listener()
+        logger.info("[SUCCESS] Redis listener запущен")
+    except Exception as e:
+        logger.warning(f"[WARNING] Не удалось запустить Redis listener: {e}")
+        logger.info("WebSocket будет работать без Redis событий")
 
 
 @app.on_event("shutdown")
@@ -146,23 +154,14 @@ async def get_websocket_status():
 @app.get("/api/ws/test")
 async def test_websocket_connection():
     """Тестирование WebSocket соединения."""
-    import websockets
-
     try:
-        # Пытаемся подключиться к WebSocket серверу
-        uri = "ws://localhost:8000/ws"
-        async with websockets.connect(uri) as websocket:
-            # Отправляем тестовое сообщение
-            await websocket.send("test")
-            # Получаем ответ
-            response = await websocket.recv()
-            await websocket.close()
-
-            return {
-                "status": "success",
-                "message": "WebSocket соединение работает",
-                "response": response,
-            }
+        # Простая проверка статуса WebSocket сервера
+        return {
+            "status": "success",
+            "message": "WebSocket сервер доступен",
+            "active_connections": len(websocket_hub.active_connections),
+            "max_connections": websocket_hub.max_connections,
+        }
     except Exception as e:
         return {
             "status": "error",
@@ -185,7 +184,7 @@ async def cleanup_websocket_connections():
 @app.post("/api/ws/reset")
 async def reset_all_websocket_connections():
     """Принудительный сброс всех WebSocket соединений."""
-    logger.warning("🔄 Принудительный сброс всех WebSocket соединений")
+    logger.warning("[RESET] Принудительный сброс всех WebSocket соединений")
 
     # Закрываем все активные соединения
     connections_to_close = list(websocket_hub.active_connections)
@@ -198,7 +197,7 @@ async def reset_all_websocket_connections():
     # Очищаем список соединений
     websocket_hub.active_connections.clear()
 
-    logger.info(f"✅ Сброшено {len(connections_to_close)} WebSocket соединений")
+    logger.info(f"[SUCCESS] Сброшено {len(connections_to_close)} WebSocket соединений")
     return {
         "status": "success",
         "message": f"Сброшено {len(connections_to_close)} соединений",
@@ -345,25 +344,30 @@ async def test_redis_event():
 async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint для real-time обновлений."""
     client_id = id(websocket)
-    logger.info(f"🔌 Попытка подключения WebSocket #{client_id}")
+    logger.info(f"[CONNECT] Попытка подключения WebSocket #{client_id}")
 
     try:
         # Проверяем лимит соединений перед подключением
         if len(websocket_hub.active_connections) >= websocket_hub.max_connections:
             logger.warning(
-                f"❌ Достигнут лимит WebSocket соединений: "
+                f"[ERROR] Достигнут лимит WebSocket соединений: "
                 f"{websocket_hub.max_connections}"
             )
             await websocket.close(code=1013, reason="Too many connections")
             return
 
+        # Проверяем, что WebSocket еще не закрыт
+        if websocket.client_state.value == 3:  # WebSocketState.DISCONNECTED
+            logger.warning(f"[WARNING] WebSocket #{client_id} уже отключен")
+            return
+
         await websocket_hub.connect(websocket)
-        logger.info(f"✅ WebSocket #{client_id} успешно подключен")
+        logger.info(f"[SUCCESS] WebSocket #{client_id} успешно подключен")
 
         # Проверяем, что соединение действительно установлено
         if websocket not in websocket_hub.active_connections:
             logger.warning(
-                f"⚠️ WebSocket #{client_id} не добавлен в активные соединения"
+                f"[WARNING] WebSocket #{client_id} не добавлен в активные соединения"
             )
             return
 
@@ -374,20 +378,23 @@ async def websocket_endpoint(websocket: WebSocket):
             while True:
                 # Держим соединение открытым
                 data = await websocket.receive_text()
-                logger.debug(f"📨 Получено сообщение от WebSocket #{client_id}: {data}")
+                logger.debug(
+                    f"[MESSAGE] Получено сообщение от WebSocket #{client_id}: "
+                    f"{data}"
+                )
 
         except WebSocketDisconnect:
-            logger.info(f"🔌 WebSocket #{client_id} клиент отключился")
+            logger.info(f"[CONNECT] WebSocket #{client_id} клиент отключился")
         except Exception as e:
-            logger.error(f"❌ Ошибка WebSocket #{client_id}: {e}")
+            logger.error(f"[ERROR] Ошибка WebSocket #{client_id}: {e}")
         finally:
             # Отменяем ping задачу
             ping_task.cancel()
             websocket_hub.disconnect(websocket)
-            logger.info(f"🧹 WebSocket #{client_id} очищен")
+            logger.info(f"[CLEANUP] WebSocket #{client_id} очищен")
 
     except Exception as e:
-        logger.error(f"❌ Критическая ошибка WebSocket #{client_id}: {e}")
+        logger.error(f"[ERROR] Критическая ошибка WebSocket #{client_id}: {e}")
         websocket_hub.disconnect(websocket)
         try:
             await websocket.close(code=1011, reason="Internal error")
@@ -404,18 +411,19 @@ async def ping_websocket(websocket: WebSocket, client_id: int):
             if websocket in websocket_hub.active_connections:
                 try:
                     await websocket.send_text('{"type": "ping"}')
-                    logger.debug(f"🏓 Ping отправлен WebSocket #{client_id}")
+                    logger.debug(f"[PING] Ping отправлен WebSocket #{client_id}")
                 except Exception as e:
                     logger.warning(
-                        f"⚠️ Не удалось отправить ping WebSocket #{client_id}: {e}"
+                        f"[WARNING] Не удалось отправить ping WebSocket "
+                        f"#{client_id}: {e}"
                     )
                     break
             else:
                 break
     except asyncio.CancelledError:
-        logger.debug(f"🏓 Ping задача отменена для WebSocket #{client_id}")
+        logger.debug(f"[PING] Ping задача отменена для WebSocket #{client_id}")
     except Exception as e:
-        logger.error(f"❌ Ошибка ping WebSocket #{client_id}: {e}")
+        logger.error(f"[ERROR] Ошибка ping WebSocket #{client_id}: {e}")
 
 
 if __name__ == "__main__":

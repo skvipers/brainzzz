@@ -59,7 +59,7 @@ class WebSocketMessage(BaseModel):
     """Базовое WebSocket сообщение."""
 
     type: MessageType
-    schema_version: str = "1.0.0"  # Версия схемы
+    schema: str = "1.0.0"  # Версия схемы
     ts: datetime = Field(default_factory=datetime.now)
     data: Dict[str, Any]
 

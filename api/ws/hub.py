@@ -30,19 +30,19 @@ class WebSocketHub:
         # Проверяем лимит соединений
         if len(self.active_connections) >= self.max_connections:
             logger.warning(
-                f"❌ Достигнут лимит WebSocket соединений: {self.max_connections}"
+                f"[ERROR] Достигнут лимит WebSocket соединений: {self.max_connections}"
             )
             await websocket.close(code=1013, reason="Too many connections")
             return
 
-        # Добавляем задержку для предотвращения race conditions
-        await asyncio.sleep(1.0)  # Увеличиваем задержку до 1 секунды
+        # Небольшая задержка для предотвращения race conditions
+        await asyncio.sleep(0.1)  # Уменьшаем задержку
 
         try:
             await websocket.accept()
             self.active_connections.add(websocket)
             logger.info(
-                f"✅ WebSocket #{client_id} подключен. "
+                f"[SUCCESS] WebSocket #{client_id} подключен. "
                 f"Всего: {len(self.active_connections)}"
             )
 
@@ -61,7 +61,7 @@ class WebSocketHub:
             )
 
         except Exception as e:
-            logger.error(f"❌ Ошибка подключения WebSocket #{client_id}: {e}")
+            logger.error(f"[ERROR] Ошибка подключения WebSocket #{client_id}: {e}")
             if websocket in self.active_connections:
                 self.active_connections.remove(websocket)
             try:
@@ -76,11 +76,11 @@ class WebSocketHub:
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
             logger.info(
-                f"🔌 WebSocket #{client_id} отключен. "
+                f"[CONNECT] WebSocket #{client_id} отключен. "
                 f"Всего: {len(self.active_connections)}"
             )
         else:
-            logger.debug(f"🔌 WebSocket #{client_id} уже отключен")
+            logger.debug(f"[CONNECT] WebSocket #{client_id} уже отключен")
 
     async def send_personal_message(
         self, websocket: WebSocket, message: WebSocketMessage
@@ -119,12 +119,12 @@ class WebSocketHub:
             # Подписываемся на события
             success = await redis_adapter.subscribe_to_events(self._handle_redis_event)
             if success:
-                logger.info("✅ Redis listener запущен")
+                logger.info("[SUCCESS] Redis listener запущен")
             else:
-                logger.error("❌ Не удалось запустить Redis listener")
+                logger.error("[ERROR] Не удалось запустить Redis listener")
 
         except Exception as e:
-            logger.error(f"❌ Ошибка запуска Redis listener: {e}")
+            logger.error(f"[ERROR] Ошибка запуска Redis listener: {e}")
 
     async def stop_redis_listener(self):
         """Остановка слушателя Redis событий."""
@@ -167,7 +167,7 @@ class WebSocketHub:
             self.disconnect(dead_connection)
 
         if dead_connections:
-            logger.info(f"🧹 Очищено {len(dead_connections)} мертвых соединений")
+            logger.info(f"[CLEANUP] Очищено {len(dead_connections)} мертвых соединений")
 
     def get_connection_stats(self) -> Dict[str, Any]:
         """Возвращает статистику соединений."""

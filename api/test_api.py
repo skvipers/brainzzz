@@ -1,66 +1,96 @@
 """
-Тестовый скрипт для проверки Brainzzz API.
+Простой тест для проверки API endpoints.
 """
 
 import asyncio
+import logging
 
 import aiohttp
 
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-async def test_api():
-    """Тестируем API endpoints."""
+# Базовый URL для тестов
+BASE_URL = "http://localhost:8000"
 
+
+async def test_health_check():
+    """Тест health check endpoint."""
     async with aiohttp.ClientSession() as session:
-        base_url = "http://localhost:8000"
+        async with session.get(f"{BASE_URL}/api/health") as response:
+            assert response.status == 200  # nosec B101
+            data = await response.json()
+            assert data["status"] == "healthy"  # nosec B101
+            logger.info("[SUCCESS] Health check прошел")
 
-        print("🧪 Тестируем Brainzzz API...")
 
-        # Тест главной страницы
+async def test_population_endpoint():
+    """Тест population endpoint."""
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"{BASE_URL}/api/population") as response:
+            assert response.status == 200  # nosec B101
+            data = await response.json()
+            assert isinstance(data, list)  # nosec B101
+            assert len(data) > 0  # nosec B101
+            logger.info(f"[SUCCESS] Population endpoint прошел: {len(data)} мозгов")
+
+
+async def test_stats_endpoint():
+    """Тест stats endpoint."""
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"{BASE_URL}/api/stats") as response:
+            assert response.status == 200  # nosec B101
+            data = await response.json()
+            assert "size" in data  # nosec B101
+            assert "avg_fitness" in data  # nosec B101
+            logger.info("[SUCCESS] Stats endpoint прошел")
+
+
+async def test_websocket_status():
+    """Тест WebSocket status endpoint."""
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"{BASE_URL}/api/ws/status") as response:
+            assert response.status == 200  # nosec B101
+            data = await response.json()
+            assert "status" in data  # nosec B101
+            assert "max_connections" in data  # nosec B101
+            logger.info("[SUCCESS] WebSocket status endpoint прошел")
+
+
+async def test_redis_event():
+    """Тест Redis event publishing."""
+    async with aiohttp.ClientSession() as session:
+        async with session.post(f"{BASE_URL}/api/test-redis") as response:
+            # Redis может быть недоступен, поэтому проверяем только статус
+            assert response.status in [
+                200,
+                500,
+            ]  # nosec B101 - 500 если Redis недоступен
+            data = await response.json()
+            logger.info(f"[SUCCESS] Redis test endpoint прошел: {data['status']}")
+
+
+async def run_all_tests():
+    """Запуск всех тестов."""
+    logger.info("[STARTUP] Запуск тестов API...")
+
+    tests = [
+        test_health_check,
+        test_population_endpoint,
+        test_stats_endpoint,
+        test_websocket_status,
+        test_redis_event,
+    ]
+
+    for test in tests:
         try:
-            async with session.get(f"{base_url}/") as response:
-                if response.status == 200:
-                    data = await response.json()
-                    print(f"✅ Главная страница: {data['message']}")
-                else:
-                    print(f"❌ Главная страница: {response.status}")
+            await test()
         except Exception as e:
-            print(f"❌ Ошибка главной страницы: {e}")
+            logger.error(f"[ERROR] Тест {test.__name__} упал: {e}")
 
-        # Тест health check
-        try:
-            async with session.get(f"{base_url}/api/v1/health") as response:
-                if response.status == 200:
-                    data = await response.json()
-                    print(f"✅ Health check: {data['status']}")
-                else:
-                    print(f"❌ Health check: {response.status}")
-        except Exception as e:
-            print(f"❌ Ошибка health check: {e}")
-
-        # Тест статуса системы
-        try:
-            async with session.get(f"{base_url}/api/v1/status") as response:
-                if response.status == 200:
-                    data = await response.json()
-                    print(f"✅ Статус системы: {data['status']}")
-                    print(f"   Redis: {data['connections']['redis']}")
-                    print(f"   DuckDB: {data['connections']['duckdb']}")
-                else:
-                    print(f"❌ Статус системы: {response.status}")
-        except Exception as e:
-            print(f"❌ Ошибка статуса системы: {e}")
-
-        # Тест статистики популяции
-        try:
-            async with session.get(f"{base_url}/api/v1/population/stats") as response:
-                if response.status == 200:
-                    data = await response.json()
-                    print(f"✅ Статистика популяции: {data['count']} записей")
-                else:
-                    print(f"❌ Статистика популяции: {response.status}")
-        except Exception as e:
-            print(f"❌ Ошибка статистики популяции: {e}")
+    logger.info("[SUCCESS] Все тесты завершены")
 
 
 if __name__ == "__main__":
-    asyncio.run(test_api())
+    asyncio.run(run_all_tests())

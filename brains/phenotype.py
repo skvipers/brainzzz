@@ -2,6 +2,8 @@
 Фенотипическое представление мозга.
 """
 
+from typing import Dict, List
+
 import numpy as np
 
 from .genome import Genome
@@ -115,7 +117,7 @@ class Phenotype:
         ]
         return activations[output_nodes]
 
-    def get_input_nodes(self) -> list[int]:
+    def get_input_nodes(self) -> List[int]:
         """Возвращает список ID входных узлов."""
         return [
             i
@@ -123,7 +125,7 @@ class Phenotype:
             if node.node_type == "input"
         ]
 
-    def get_output_nodes(self) -> list[int]:
+    def get_output_nodes(self) -> List[int]:
         """Возвращает список ID выходных узлов."""
         return [
             i
@@ -131,7 +133,7 @@ class Phenotype:
             if node.node_type == "output"
         ]
 
-    def get_hidden_nodes(self) -> list[int]:
+    def get_hidden_nodes(self) -> List[int]:
         """Возвращает список ID скрытых узлов."""
         return [
             i
@@ -139,7 +141,7 @@ class Phenotype:
             if node.node_type == "hidden"
         ]
 
-    def get_memory_nodes(self) -> list[int]:
+    def get_memory_nodes(self) -> List[int]:
         """Возвращает список ID узлов памяти."""
         return [
             i
@@ -147,7 +149,7 @@ class Phenotype:
             if node.node_type == "memory"
         ]
 
-    def get_node_connections(self, node_id: int) -> dict[str, list[int]]:
+    def get_node_connections(self, node_id: int) -> Dict[str, List[int]]:
         """
         Возвращает все соединения для конкретного узла.
 

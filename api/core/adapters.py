@@ -38,11 +38,11 @@ class RedisAdapter:
             # Проверяем подключение
             await self.redis_client.ping()
             self.connected = True
-            logger.info("✅ Redis подключен успешно")
+            logger.info("[SUCCESS] Redis подключен успешно")
             return True
 
         except Exception as e:
-            logger.error(f"❌ Ошибка подключения к Redis: {e}")
+            logger.error(f"[ERROR] Ошибка подключения к Redis: {e}")
             self.connected = False
             return False
 
@@ -115,14 +115,34 @@ class DuckDBAdapter:
     def connect(self) -> bool:
         """Подключение к DuckDB."""
         try:
-            # Создаем подключение к DuckDB
-            self.connection = duckdb.connect(str(self.db_path))
+            # Проверяем существование файла базы данных
+            if not self.db_path.exists():
+                logger.warning(f"[WARNING] Файл базы данных не найден: {self.db_path}")
+                # Создаем пустую базу данных
+                self.connection = duckdb.connect(str(self.db_path))
+                # Создаем базовую таблицу
+                self.connection.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS population_snapshots (
+                        id INTEGER PRIMARY KEY,
+                        timestamp TIMESTAMP,
+                        population_size INTEGER,
+                        avg_fitness DOUBLE,
+                        max_fitness DOUBLE
+                    )
+                """
+                )
+                logger.info("[SUCCESS] Создана новая база данных DuckDB")
+            else:
+                # Подключаемся к существующей базе
+                self.connection = duckdb.connect(str(self.db_path))
+                logger.info("[SUCCESS] DuckDB подключен к существующей базе")
+
             self.connected = True
-            logger.info("✅ DuckDB подключен успешно")
             return True
 
         except Exception as e:
-            logger.error(f"❌ Ошибка подключения к DuckDB: {e}")
+            logger.error(f"[ERROR] Ошибка подключения к DuckDB: {e}")
             self.connected = False
             return False
 
